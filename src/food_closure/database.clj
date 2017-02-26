@@ -54,6 +54,11 @@
     (map-item-to-list db list-id item-id)
     item-id))
 
+(defn remove-item-from-list
+  [db list-id item-id]
+  (sql/delete! db :item_list_maps ["item_id = ? AND list_id = ?" item-id list-id])
+  (sql/delete! db :items ["id = ?" item-id]) )
+
 (defn get-all-items [db list-id]
   (sql/query db ["
 SELECT a.*

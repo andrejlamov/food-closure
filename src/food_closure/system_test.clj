@@ -39,8 +39,11 @@
         ;; Asssert size of list
         items       (db/get-all-items conf list-id)
         _           (assert (= 5 (count items)))
+        ;; Regret candy
+        _           (db/remove-item-from-list conf list-id ferrari-id-2)
+        items'      (db/get-all-items conf list-id)
+        _           (assert (= 4 (count items')))
         ]
-    (db/test-teardown conf)
-    items
     )
+  (db/test-teardown conf)
   )
