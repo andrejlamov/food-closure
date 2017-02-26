@@ -36,6 +36,7 @@
   (search [store get-data-fn text]
     (-> (str search-url text)
         (get-data-fn)
+        (get-html-articles)
         (transform-to-items)
         )))
 
@@ -45,6 +46,5 @@
   (-> search-url
       (client/get)
       (:body)
-      (util/from-string-to-html)
-      (get-html-articles)))
+      (util/from-string-to-html)))
 

@@ -7,3 +7,8 @@
   (-> (java.io.StringReader. text)
       (html/html-resource)))
 
+(defn slurp-html-file
+  [file-name]
+  (-> file-name
+      (slurp)
+      (from-string-to-html)))

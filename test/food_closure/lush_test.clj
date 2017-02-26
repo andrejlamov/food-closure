@@ -6,11 +6,7 @@
 
 (defn test-fetch-data
   [_text]
-  (-> "resources/test/lush-avocado-search-result.html"
-      (slurp)
-      (util/from-string-to-html)
-      (get-html-articles)))
-
+  (util/slurp-html-file "resources/test/lush-avocado-search-result.html"))
 
 (deftest parse-search-result
   []

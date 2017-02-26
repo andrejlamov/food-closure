@@ -44,5 +44,3 @@
     items
     )
   )
-
-(compose-a-list)

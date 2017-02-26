@@ -1,17 +1,14 @@
 (ns food-closure.karamellkungen-test
   (:require [food-closure.karamellkungen :refer :all]
             [clojure.test :refer :all]
-            [food-closure.util :as util]
             [food-closure.store :as store]
-            [net.cgrand.enlive-html :as html]))
+            [net.cgrand.enlive-html :as html]
+            [food-closure.util :as util]))
 
 
 (defn test-fetch-data
   [_text]
-  (-> "resources/test/karamellkungen-banan-search-result.html"
-      (slurp)
-      (util/from-string-to-html)
-      (get-html-articles)))
+  (util/slurp-html-file "resources/test/karamellkungen-banan-search-result.html"))
 
 (deftest html-banan-list-test
   (testing "Get item from search result"
