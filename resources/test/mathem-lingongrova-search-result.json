@@ -1,0 +1,65 @@
+[
+    {
+        "ProductId":16492, 
+        "HasReserveProductStockFull":false, 
+        "ProductName":"Lingongrova 500g Pågen", 
+        "ImageUrl":"//static.mathem.se/shared/images/products/small/07311071330525_c1l1.jpg", 
+        "ProductUrl":"/varor/grovlimpa/lingongrova-500g-pagen", 
+        "Attributes":
+        [
+        ], 
+        "RegularPrice":"24.95", 
+        "ShowRegularPrice":false, 
+        "Price":"24.95", 
+        "PricePerUnit":"49,90 kr/kg", 
+        "HasRecycleFee":false, 
+        "IsInCart":false, 
+        "ProductCount":"1", 
+        "DiscountText1":"", 
+        "DiscountText2":"", 
+        "BuyButtonDisabledForMemberType":"", 
+        "TotalNumberOfProductsFound":"3"
+    }, 
+    {
+        "ProductId":76306, 
+        "HasReserveProductStockFull":false, 
+        "ProductName":"Lingongrova Special 500g Pågen", 
+        "ImageUrl":"//static.mathem.se/shared/images/products/small/07311070330243_c1l1.jpg", 
+        "ProductUrl":"/varor/grovlimpa/lingongrova-special-500g-pagen", 
+        "Attributes":
+        [
+        ], 
+        "RegularPrice":"26.95", 
+        "ShowRegularPrice":false, 
+        "Price":"26.95", 
+        "PricePerUnit":"53,90 kr/kg", 
+        "HasRecycleFee":false, 
+        "IsInCart":false, 
+        "ProductCount":"1", 
+        "DiscountText1":"", 
+        "DiscountText2":"", 
+        "BuyButtonDisabledForMemberType":"", 
+        "TotalNumberOfProductsFound":"3"
+    }, 
+    {
+        "ProductId":100616, 
+        "HasReserveProductStockFull":false, 
+        "ProductName":"Lingongrova Extra 360g Pågen", 
+        "ImageUrl":"//static.mathem.se/shared/images/products/small/07311070339406_c1l1.jpg", 
+        "ProductUrl":"/varor/styckbrod/lingongrova-extra-360g-pagen", 
+        "Attributes":
+        [
+        ], 
+        "RegularPrice":"28.95", 
+        "ShowRegularPrice":false, 
+        "Price":"28.95", 
+        "PricePerUnit":"80,42 kr/kg", 
+        "HasRecycleFee":false, 
+        "IsInCart":false, 
+        "ProductCount":"1", 
+        "DiscountText1":"", 
+        "DiscountText2":"", 
+        "BuyButtonDisabledForMemberType":"", 
+        "TotalNumberOfProductsFound":"3"
+    }
+]
