@@ -3,7 +3,6 @@
    [food-closure.store :as store]
    [food-closure.database :as db]
    [food-closure.mathem :as mathem]
-   [food-closure.database :as db]
    [food-closure.karamellkungen :as karamell]))
 
 (def conf (db/conf *ns*))

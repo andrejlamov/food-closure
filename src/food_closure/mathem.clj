@@ -1,7 +1,5 @@
 (ns food-closure.mathem
   (:require [clojure.data.json :as json]
-            [net.cgrand.enlive-html :as html]
-            [clojure.string :as string]
             [clj-http.client :as client]
             [food-closure.store :as store]))
 

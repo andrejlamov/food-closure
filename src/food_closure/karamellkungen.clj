@@ -1,10 +1,9 @@
 (ns food-closure.karamellkungen
-  (:require [clojure.data.json :as json]
-            [net.cgrand.enlive-html :as html]
-            [clojure.string :as string]
-            [clj-http.client :as client]
-            [food-closure.store :refer [Store]]
-            [food-closure.store :as store]))
+  (:require
+   [net.cgrand.enlive-html :as html]
+   [clojure.string :as string]
+   [clj-http.client :as client]
+   [food-closure.store :as store]))
 
 
 (defn from-string-to-html
