@@ -4,12 +4,12 @@
             [food-closure.database :refer :all])
   )
 
-(def conf (db *ns*))
+(def test-conf (conf *ns*))
 
 (defn fixture [f]
-  (test-setup conf)
+  (test-setup test-conf)
   (f)
-  (test-teardown conf)
+  (test-teardown test-conf)
   )
 
 (use-fixtures :each fixture)
@@ -22,14 +22,14 @@
           grova      {:title "Lingongrova" :image_link "grova.jpg" :store "ICA"}
           popcorn    {:title "Popcorn" :image_link "popcorn.jpg" :store "ICA"}
           ;; Two lists
-          brunch-id  (create-list conf "Sunday brunch")
-          snacks-id  (create-list conf "Snacks")
+          brunch-id  (create-list test-conf "Sunday brunch")
+          snacks-id  (create-list test-conf "Snacks")
           ;; Add to lists
-          eggs-id    (add-item-to-list conf brunch-id eggs)
-          grova-id   (add-item-to-list conf brunch-id grova)
-          popcorn-id (add-item-to-list conf snacks-id popcorn)
+          eggs-id    (add-item-to-list test-conf brunch-id eggs)
+          grova-id   (add-item-to-list test-conf brunch-id grova)
+          popcorn-id (add-item-to-list test-conf snacks-id popcorn)
           ;; Get items from one of the lists
-          items      (get-all-items conf brunch-id)
+          items      (get-all-items test-conf brunch-id)
           ]
       (is (= 1 brunch-id))
       (is (= 2 snacks-id))
