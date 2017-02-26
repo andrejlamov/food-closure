@@ -94,7 +94,9 @@ WHERE a.id = m.item_id AND m.list_id = ?
 
 (defn drop-db
   [db name]
-  (sql/execute! db (sql/drop-table-ddl name)))
+  (try
+    (sql/execute! db (sql/drop-table-ddl name))
+    (catch Exception e)))
 
 (defn test-setup
   [db]

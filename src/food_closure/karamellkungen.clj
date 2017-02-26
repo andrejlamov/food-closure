@@ -3,13 +3,9 @@
    [net.cgrand.enlive-html :as html]
    [clojure.string :as string]
    [clj-http.client :as client]
+   [food-closure.util :as util]
    [food-closure.store :as store]))
 
-
-(defn from-string-to-html
-  [text]
-  (-> (java.io.StringReader. text)
-      (html/html-resource)))
 
 (defn get-html-articles
   [html]
@@ -46,5 +42,5 @@
    (-> search-url
        (client/get)
        (:body)
-       (from-string-to-html)
+       (util/from-string-to-html)
        (get-html-articles)))

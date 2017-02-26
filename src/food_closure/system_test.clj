@@ -2,6 +2,7 @@
   (:require
    [food-closure.store :as store]
    [food-closure.database :as db]
+   [food-closure.lush :as lush]
    [food-closure.mathem :as mathem]
    [food-closure.karamellkungen :as karamell]))
 
@@ -30,9 +31,14 @@
         ferrari-id-1 (db/add-item-to-list conf list-id ferrari)
         ferrari-id-2 (db/add-item-to-list conf list-id ferrari)
 
+        ;; Fetch balsam from Lush
+        balsam      (-> (store/search lush/Lush lush/fetch-data "avocado balsam")
+                        (first))
+        balsam-id   (db/add-item-to-list conf list-id balsam)
+
         ;; Asssert size of list
         items       (db/get-all-items conf list-id)
-        _           (assert (= 4 (count items)))
+        _           (assert (= 5 (count items)))
         ]
     (db/test-teardown conf)
     items
