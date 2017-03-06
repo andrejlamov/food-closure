@@ -44,6 +44,6 @@
         items'      (db/get-all-items conf list-id)
         _           (assert (= 4 (count items')))
         ]
-    )
   (db/test-teardown conf)
-  )
+  items'
+  ))
