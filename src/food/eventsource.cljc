@@ -21,12 +21,20 @@
 
 (defn leave-trail
   [fun acc value]
-  (conj acc (fun (last acc) value)))
+  (flatall acc (fun (last acc) value)))
 
 (defn trail-reduce
-  ([fun initial vec]
+  ([fun initial lst]
    (reduce (partial leave-trail fun)
            [initial]
-           vec))
-  ([initial vec]
-   (trail-reduce fold initial vec)))
+           lst))
+  ([initial lst]
+   (trail-reduce fold initial lst)))
+
+(defn trail-reduce-event [trail-list event]
+  (let [last-acc (last trail-list)]
+    (->> (trail-reduce last-acc [event])
+         (last)
+         (flatall trail-list))))
+
+
