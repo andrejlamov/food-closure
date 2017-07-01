@@ -3,7 +3,7 @@
             [clojure.test :as t]))
 
 (sut/defn-type Hello :msg :volume)
-(Hello 1)
+
 (t/deftest constructor-and-getters
   (let [
         text   "hello!!!"
