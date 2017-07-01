@@ -1,24 +1,28 @@
 (ns food.server
   (:gen-class)
-  (:require [org.httpkit.server :refer :all]
-            [ring.middleware.cljsjs :refer [wrap-cljsjs]]
-            [compojure.route :refer [resources]]
-            [compojure.handler :refer [site]]
-            [compojure.core :refer [defroutes GET]]
+  (:require [clojure.edn :as edn]
             [clojure.tools.namespace.repl :refer [disable-unload!]]
-            [food.handlers]))
+            [compojure.core :refer [defroutes GET]]
+            [compojure.handler :refer [site]]
+            [compojure.route :refer [resources]]
+            food.eval
+            food.types
+            food.util
+            [org.httpkit.server :refer :all]
+            [ring.middleware.cljsjs :refer [wrap-cljsjs]]))
 
 (disable-unload!)
 
 (defonce server (atom nil))
 
-(defn handle [channel data]
-  (food.handlers/on-receive-handler channel data))
+(defn evaluate [data channel]
+  (food.util/log data)
+  (food.eval/evaluate data channel))
 
 (defn ws-handler [request]
   (with-channel request channel
-    (on-close channel (fn [status] (println "*** chanel closed: " status)))
-    (on-receive channel (fn [data] (handle channel data)))))
+    (on-close channel (fn [status] (evaluate (food.types/Unsubscribe) channel)))
+    (on-receive channel (fn [data] (evaluate (edn/read-string data) channel)))))
 
 (defroutes routes
   (GET "/ws" [] ws-handler)

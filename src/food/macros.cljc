@@ -25,6 +25,7 @@
 ;; Function name contains the generated gensym ref
 ;; when looping in the macro and not using recursion
 (defmacro -defn-getters
+  ([name] nil)
   ([name k & keys]
    `(do (-defn-getter  ~name ~k)
         (-defn-key-path ~name ~k)
@@ -39,3 +40,5 @@
      (-defn-getters ~name ~@keys)))
 
 (defn get-type [d] (-> d :meta :type))
+
+
