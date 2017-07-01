@@ -2,17 +2,12 @@
   (:require [food.types :as t]
             [food.macros :as m]))
 
-(defn flatall [& args]
-  (->
-   (map (fn [d] [d]) args)
-   (flatten)))
-
 (defmulti fold (fn [acc d] (m/get-type d)))
 (defmethod fold :CreateList [acc d]
   (let [list-name (t/CreateList-title d)]
     (assoc acc list-name (t/List list-name []))))
 (defmethod fold :AddItem [acc d]
-  (let [path (flatall (t/AddItem-list-name d) (t/List-items--path))
+  (let [path (into [(t/AddItem-list-name d)] (t/List-items--path))
         item (t/AddItem-item d)]
     (update-in acc
                path
@@ -21,7 +16,7 @@
 
 (defn leave-trail
   [fun acc value]
-  (flatall acc (fun (last acc) value)))
+  (conj acc (fun (last acc) value)))
 
 (defn trail-reduce
   ([fun initial lst]
@@ -35,6 +30,6 @@
   (let [last-acc (last trail-list)]
     (->> (trail-reduce last-acc [event])
          (last)
-         (flatall trail-list))))
+         (conj trail-list))))
 
 

@@ -43,7 +43,3 @@
   (let [event (AddItem "my list" (Item "avocado" "avocado.jpg"))]
     (t/is (= (sut/trail-reduce-event reduced-events event)
              reduced-events-appended-avocado))))
-
-(t/deftest flatten-everything
-  (t/is (= [1 2 3]
-           (sut/flatall 1 [2] [[[3]]]))))
