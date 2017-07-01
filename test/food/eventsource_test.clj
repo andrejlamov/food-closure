@@ -14,14 +14,14 @@
               "my list"
               (Item "orange" "orange.jpg"))])
 
-(def reduced-events
+(def states
   [{}
    {"my list" (List "my list" [])}
    {"my list" (List "my list" [(Item "apple" "apple.jpg")])}
    {"my list" (List "my list" [(Item "apple" "apple.jpg")
                                (Item "orange" "orange.jpg")])}])
 
-(def reduced-events-appended-avocado
+(def states-2
   [{}
    {"my list" (List "my list" [])}
    {"my list" (List "my list" [(Item "apple" "apple.jpg")])}
@@ -36,10 +36,10 @@
            (sut/trail-reduce + 0  [1 1 1 2]))))
 
 (t/deftest reduce-with-types
-  (t/is (= reduced-events
+  (t/is (= states
            (sut/trail-reduce {} events))))
 
-(t/deftest append-to-trail-list
+(t/deftest append-new-state2
   (let [event (AddItem "my list" (Item "avocado" "avocado.jpg"))]
-    (t/is (= (sut/trail-reduce-event reduced-events event)
-             reduced-events-appended-avocado))))
+    (t/is (= (sut/reduce-append-state states event)
+             states-2))))

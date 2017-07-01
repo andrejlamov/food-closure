@@ -26,10 +26,12 @@
   ([initial lst]
    (trail-reduce fold initial lst)))
 
-(defn trail-reduce-event [trail-list event]
-  (let [last-acc (last trail-list)]
-    (->> (trail-reduce last-acc [event])
+(defn reduce-append-state [states event]
+  (let [last-state (last states)]
+    (->> (trail-reduce last-state [event])
          (last)
-         (conj trail-list))))
+         (conj states))))
 
+(defn reduce-append-swap [states event]
+  (swap! states reduce-append-state event))
 

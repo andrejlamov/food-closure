@@ -3,6 +3,7 @@
             [org.httpkit.server :refer :all]
             [food.mathem :as mathem]
             [food.util :as u]
+            [food.eventsource :as e]
             [food.macros :as m]
             [food.globals :as g]
             [food.types :as t]))
@@ -15,18 +16,23 @@
   (swap! channels conj channel))
 
 (defn unsubscribe [channel channels]
-  (swap! channels
-         (fn [state e] (set (remove #{e} state)))
-         channel))
+  (when channel
+    (swap! channels
+           (fn [state e] (set (remove #{e} state)))
+           channel)))
 
 (defn publish [channel data]
-  (send! channel (pr-str data)))
+  (when channel
+    (send! channel (pr-str data))))
 
-(defmulti evaluate (fn [d channel] (m/get-type d)))
-(defmethod evaluate :Subscribe   [_ channel] (subscribe channel g/channel-hub))
-(defmethod evaluate :Unsubscribe [_ channel] (unsubscribe channel g/channel-hub))
-(defmethod evaluate :SearchQuery [d channel]
+(defmulti evaluate (fn [d _] (m/get-type d)))
+(defmethod evaluate :Subscribe   [_ scope] (subscribe   (:channel scope) (:channel-hub scope)))
+(defmethod evaluate :Unsubscribe [_ scope] (unsubscribe (:channel scope) (:channel-hub scope)))
+(defmethod evaluate :SearchQuery [d scope]
   (u/log (count @g/channel-hub))
-  (->> (searchQuery d)
-       (publish channel)))
-
+  (let [res (searchQuery d)]
+    (publish (:channel scope) res)
+    res))
+(defmethod evaluate :default [d scope]
+  (let [states (:data-states scope)]
+    (e/reduce-append-swap states d)))
