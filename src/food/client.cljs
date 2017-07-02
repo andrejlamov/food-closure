@@ -20,7 +20,8 @@
 
 (defn main []
   (log "main!")
-  (send (t/SearchQuery "lingongrova" :mathem)))
+  (send (t/SearchQuery "lingongrova" (t/Mathem)))
+  )
 
 (set! (.-onopen ws) (fn []
                       (send (t/Subscribe))
