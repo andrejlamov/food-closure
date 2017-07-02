@@ -8,8 +8,8 @@
             [food.globals :as g]
             [food.types :as t]))
 
-(defmulti searchQuery t/SearchQuery-store)
-(defmethod searchQuery :mathem [d]
+(defmulti searchQuery (fn [d] (->> d (t/SearchQuery-store) (m/get-type))))
+(defmethod searchQuery :Mathem [d]
   (mathem/search (t/SearchQuery-text d)))
 
 (defn subscribe [channel channels]

@@ -10,7 +10,7 @@
 
 (defn doit []
     (let [
-          candidates  (e/evaluate (t/SearchQuery "lingongrova" :mathem) scope)
+          candidates  (e/evaluate (t/SearchQuery "lingongrova" (t/Mathem)) scope)
           lingongrova (-> candidates
                           (t/CandidateList-items)
                           (first))
