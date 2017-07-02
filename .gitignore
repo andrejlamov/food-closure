@@ -12,3 +12,4 @@ pom.xml.asc
 /resources
 /out
 .nreplport
+figwheel_server.log
