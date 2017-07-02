@@ -14,21 +14,18 @@
 
 (disable-unload!)
 
-(defonce server (atom nil))
+(defonce channel-hub (atom #{}))
 
-(defn evaluate [data scope]
+(defn evaluate [data channel]
   (food.util/log data)
-  (food.eval/evaluate data scope))
-
-(defn scope [channel]
-  (food.util/scope channel g/channel-hub nil))
+  (food.eval/evaluate
+   data
+   (food.util/scope channel channel-hub nil)))
 
 (defn ws-handler [request]
   (with-channel request channel
-    (on-close channel (fn [status] (evaluate (food.types/Unsubscribe)
-                                            (scope channel))))
-    (on-receive channel (fn [data] (evaluate (edn/read-string data)
-                                            (scope channel))))))
+    (on-close channel (fn [status] (evaluate (food.types/Unsubscribe) channel)))
+    (on-receive channel (fn [data] (evaluate (edn/read-string data) channel)))))
 
 (defroutes routes
   (GET "/ws" [] ws-handler)
@@ -36,13 +33,3 @@
 
 (def route-handler
   (site #'routes))
-
-(defn start-server []
-  (reset! server (run-server route-handler {:port 8080})))
-
-(defn restart-server []
-  (if-not (nil? @server)
-    (do (@server :timeout 100)
-        (reset! server nil)
-        (start-server))
-    (start-server)))
