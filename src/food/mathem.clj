@@ -1,6 +1,7 @@
 (ns food.mathem
   (:require [clojure.data.json :as json]
             [clj-http.client :as client]
+            [food.eval :as e]
             [food.types :as t]
             [food.util :as u]))
 
@@ -42,3 +43,6 @@
        (build-url)
        (u/get-data :http)
        (parse-and-transform)))
+
+(defmethod e/searchQuery :Mathem [d]
+  (search (t/SearchQuery-text d)))

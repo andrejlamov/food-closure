@@ -1,15 +1,12 @@
 (ns food.eval
   (:require [food.util :as u]
             [org.httpkit.server :refer :all]
-            [food.mathem :as mathem]
             [food.util :as u]
             [food.eventsource :as e]
             [food.macros :as m]
             [food.types :as t]))
 
 (defmulti searchQuery (fn [d] (->> d (t/SearchQuery-store) (m/get-type))))
-(defmethod searchQuery :Mathem [d]
-  (mathem/search (t/SearchQuery-text d)))
 
 (defn subscribe [channel channels]
   (when channel
