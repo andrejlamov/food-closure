@@ -35,11 +35,14 @@
   (t/is (= [0 1 2 3 5]
            (sut/trail-reduce + 0  [1 1 1 2]))))
 
+(t/deftest fold
+  (t/is (= {"my list" (List "my list" [])} (sut/fold {} (CreateList "my list" [])))))
+
 (t/deftest reduce-with-types
   (t/is (= states
            (sut/trail-reduce {} events))))
 
-(t/deftest append-new-state2
+(t/deftest append-new-state
   (let [event (AddItem "my list" (Item "avocado" "avocado.jpg"))]
-    (t/is (= (sut/reduce-append-state states event)
+    (t/is (= (sut/reduce-append states event)
              states-2))))

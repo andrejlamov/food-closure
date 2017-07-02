@@ -13,7 +13,8 @@
   (mathem/search (t/SearchQuery-text d)))
 
 (defn subscribe [channel channels]
-  (swap! channels conj channel))
+  (when channel
+    (swap! channels conj channel)))
 
 (defn unsubscribe [channel channels]
   (when channel
@@ -21,18 +22,20 @@
            (fn [state e] (set (remove #{e} state)))
            channel)))
 
-(defn publish [channel data]
-  (when channel
-    (send! channel (pr-str data))))
+(defn publish [channels data]
+  (doseq [c channels]
+    (when c
+      (u/log c)
+      (send! c (pr-str data))))
+  data)
 
 (defmulti evaluate (fn [d _] (m/get-type d)))
-(defmethod evaluate :Subscribe   [_ scope] (subscribe   (:channel scope) (:channel-hub scope)))
-(defmethod evaluate :Unsubscribe [_ scope] (unsubscribe (:channel scope) (:channel-hub scope)))
-(defmethod evaluate :SearchQuery [d scope]
-  (u/log (count @g/channel-hub))
-  (let [res (searchQuery d)]
-    (publish (:channel scope) res)
-    res))
-(defmethod evaluate :default [d scope]
-  (let [states (:data-states scope)]
-    (e/reduce-append-swap states d)))
+(defmethod evaluate :Subscribe   [_ {:keys [channel channel-hub]}]
+  (subscribe channel channel-hub))
+(defmethod evaluate :Unsubscribe [_ {:keys [channel channel-hub]}]
+  (unsubscribe channel channel-hub))
+(defmethod evaluate :SearchQuery [d {:keys [channel]}]
+  (publish [channel] (searchQuery d)))
+(defmethod evaluate :default     [d {:keys [data-states channel-hub]}]
+  (e/reduce-append-swap data-states d)
+  (publish channel-hub d))

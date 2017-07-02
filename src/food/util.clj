@@ -13,8 +13,8 @@
   (println "*** server" d)
   d)
 
-(defn scope [ws-channel channel-hub states]
-  {:channel ws-channel
+(defn scope [ws-channel channel-hub data-states]
+  {:channel     ws-channel
    :channel-hub channel-hub
-   :data-states states})
+   :data-states data-states})
 
