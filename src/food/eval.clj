@@ -5,7 +5,6 @@
             [food.util :as u]
             [food.eventsource :as e]
             [food.macros :as m]
-            [food.globals :as g]
             [food.types :as t]))
 
 (defmulti searchQuery (fn [d] (->> d (t/SearchQuery-store) (m/get-type))))

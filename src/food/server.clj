@@ -9,8 +9,7 @@
             food.types
             food.util
             [org.httpkit.server :refer :all]
-            [ring.middleware.cljsjs :refer [wrap-cljsjs]]
-            [food.globals :as g]))
+            [ring.middleware.cljsjs :refer [wrap-cljsjs]]))
 
 (disable-unload!)
 

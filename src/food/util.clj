@@ -1,7 +1,6 @@
 (ns food.util
   (:require [clj-http.client :as client]
-            [clojure.core.match :refer [match]]
-            [food.globals :as g]))
+            [clojure.core.match :refer [match]]))
 
 (defn get-data [method url]
   (match method
