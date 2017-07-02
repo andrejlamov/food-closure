@@ -14,12 +14,13 @@
 (disable-unload!)
 
 (defonce channel-hub (atom #{}))
+(defonce data-states (atom #{}))
 
 (defn evaluate [data channel]
   (food.util/log data)
   (food.eval/evaluate
    data
-   (food.util/scope channel channel-hub nil)))
+   (food.util/scope channel channel-hub data-states)))
 
 (defn ws-handler [request]
   (with-channel request channel
