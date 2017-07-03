@@ -1,0 +1,2 @@
+#/bin/sh
+curl -o systembolaget-renat-search-result.json https://www.systembolaget.se/api/productsearch/search/sok-dryck/?searchquery=renat&sortdirection=Ascending&site=all&fullassortment=0
