@@ -1,10 +1,11 @@
 (ns food.systembolaget-test
   (:require
+   [clojure.test :as test]
    [food.systembolaget :as sut]
    [food.types :as t]
-   [clojure.test :as test]
    [food.util :as util]
    ))
+
 (defn not-nil? [expr]
   (not (nil? expr)))
 

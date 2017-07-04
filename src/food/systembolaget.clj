@@ -16,14 +16,12 @@
   (->> data
        (map (fn [d] (t/Item
                      (d "ProductNameBold")
-                     (prepend-https((d "Thumbnail") "ImageUrl")))))
-       t/CandidateList
-       ))
+                     (prepend-https (get-in d ["Thumbnail" "ImageUrl"])))))
+       t/CandidateList))
 
 (defn parse [data]
   (-> (json/read-str data)
-      (get "ProductSearchResults")
-      ))
+      (get "ProductSearchResults")))
 
 (defn parse-and-transform [fetched-data]
   (-> fetched-data
