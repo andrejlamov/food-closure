@@ -1,5 +1,8 @@
 (ns food.systembolaget
-  (:require [clojure.data.json :as json]))
+  (:require
+   [clojure.data.json :as json]
+   [food.types :as t]
+   ))
 
 
 (defn build-url [search-text]
@@ -7,10 +10,17 @@
     (str url search-text)))
 
 (defn transform [data]
-  data)
+  (->> data
+       (map (fn [d] (t/Item
+                     (d "ProductNameBold")
+                     (d "Thumbnail"))))
+       t/CandidateList
+       ))
 
 (defn parse [data]
-  (get (json/read-str data) "ProductSearchResults"))
+  (-> (json/read-str data)
+      (get "ProductSearchResults")
+      ))
 
 (defn parse-and-transform [fetched-data]
   (-> fetched-data
