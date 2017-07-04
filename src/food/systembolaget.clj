@@ -9,11 +9,14 @@
   (let [url "https://www.systembolaget.se/api/productsearch/search/sok-dryck/?sortdirection=Ascending&site=all&fullassortment=0&searchquery="]
     (str url search-text)))
 
+(defn prepend-https [url]
+  (str "https:" url))
+
 (defn transform [data]
   (->> data
        (map (fn [d] (t/Item
                      (d "ProductNameBold")
-                     (d "Thumbnail"))))
+                     (prepend-https((d "Thumbnail") "ImageUrl")))))
        t/CandidateList
        ))
 
