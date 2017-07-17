@@ -1,5 +1,5 @@
-(ns food.eval-test
-  (:require [food.eval :as sut]
+(ns food.channels_test
+  (:require [food.channels :as sut]
             [clojure.test :as t]))
 
 (t/deftest manipulate-atom-set

@@ -11,5 +11,6 @@
 (defn-type CandidateList :items)
 (defn-type Item :title :image)
 (defn-type List :name :items)
+(defn-type Lists :lists)
 (defn-type CreateList :name)
 (defn-type AddItem :list-name :item)
