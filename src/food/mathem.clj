@@ -2,7 +2,7 @@
   (:require [clojure.data.json :as json]
             [clj-http.client :as client]
             [food.eval :as e]
-            [food.types :as t]
+            [food.types :refer :all]
             [food.util :as u]))
 
 (defn build-url [search-text]
@@ -28,9 +28,9 @@
                             image (-> d
                                       (get-image-url)
                                       (prepend-https))]
-                        (t/Item title image)))
+                        (Item title image)))
                data)]
-    (t/CandidateList items)
+    (CandidateList items)
     ))
 
 (defn parse-and-transform [fetched-data]
@@ -45,4 +45,4 @@
        (parse-and-transform)))
 
 (defmethod e/searchQuery :Mathem [d]
-  (search (t/SearchQuery-text d)))
+  (search (SearchQuery-text d)))

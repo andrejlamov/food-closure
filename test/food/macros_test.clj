@@ -4,6 +4,10 @@
 
 (sut/defn-type Hello :msg :volume)
 
+(defmulti hellomulti sut/get-type)
+(defmethod hellomulti :Hello   [_] true)
+(defmethod hellomulti :default [_] false)
+
 (t/deftest constructor-and-getters
   (let [
         text   "hello!!!"
@@ -14,4 +18,5 @@
     (t/is (= num (Hello-volume hello)))
     (t/is (= [:data :msg] (Hello-msg--path)))
     (t/is (= :Hello (sut/get-type hello)))
+    (t/is (hellomulti hello))
     ))

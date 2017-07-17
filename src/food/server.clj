@@ -14,13 +14,13 @@
 (disable-unload!)
 
 (defonce channel-hub (atom #{}))
-(defonce data-states (atom #{}))
+(def db-path "db/")
 
 (defn evaluate [data channel]
   (food.util/log data)
   (food.eval/evaluate
    data
-   (food.util/scope channel channel-hub data-states)))
+   (food.types/Scope channel channel-hub db-path)))
 
 (defn ws-handler [request]
   (with-channel request channel

@@ -1,12 +1,13 @@
 (ns food.eval
   (:require [food.util :as u]
             [org.httpkit.server :refer :all]
-            [food.util :as u]
-            [food.eventsource :as e]
-            [food.macros :as m]
-            [food.types :as t]))
+            [clojure.java.io :as io]
+            [clojure.string :as string]
+            [clojure.edn :as edn]
+            [food.macros :refer :all ]
+            [food.types :refer :all]))
 
-(defmulti searchQuery (fn [d] (->> d (t/SearchQuery-store) (m/get-type))))
+(defmulti searchQuery (fn [d] (->> d (SearchQuery-store) (get-type))))
 
 (defn subscribe [channel channels]
   (when channel
@@ -25,13 +26,36 @@
       (send! c (pr-str data))))
   data)
 
-(defmulti evaluate (fn [d _] (m/get-type d)))
-(defmethod evaluate :Subscribe   [_ {:keys [channel channel-hub]}]
-  (subscribe channel channel-hub))
-(defmethod evaluate :Unsubscribe [_ {:keys [channel channel-hub]}]
-  (unsubscribe channel channel-hub))
-(defmethod evaluate :SearchQuery [d {:keys [channel]}]
-  (publish [channel] (searchQuery d)))
-(defmethod evaluate :default     [d {:keys [data-states channel-hub]}]
-  (e/reduce-append-swap data-states d)
-  (publish channel-hub d))
+(defn create-db [db-root list-name]
+  (let [path (str db-root "/" list-name)]
+    (io/make-parents (str db-root "/" list-name))
+    path))
+
+(defn append-to-db [db-root list-name d]
+  (let [path (create-db db-root list-name)]
+    (spit path (str (pr-str d) "\n") :append true)))
+
+(defn read-from-db [db-root list-name]
+  (->> (str db-root "/" list-name)
+       (slurp)
+       (string/split-lines)
+       (map edn/read-string)))
+
+(defmulti evaluate (fn [d s] (get-type d)))
+(defmethod evaluate :Subscribe   [_ s]
+  (subscribe (Scope-channel s)
+             (Scope-channel-hub s)))
+(defmethod evaluate :Unsubscribe [_ s]
+  (unsubscribe (Scope-channel s)
+               (Scope-channel-hub s)))
+(defmethod evaluate :SearchQuery [d s]
+  (publish [(Scope-channel s)] (searchQuery d)))
+(defmethod evaluate :CreateList [d s]
+  (create-db (Scope-db-root s) (CreateList-name d))
+  (publish (Scope-channel-hub s) d))
+(defmethod evaluate :AddItem [d s]
+  (append-to-db (Scope-db-root s)
+                (AddItem-list-name d)
+                (AddItem-item d))
+  (publish (Scope-channel-hub s) d))
+

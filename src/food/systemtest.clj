@@ -1,23 +1,24 @@
 (ns food.systemtest
   (:require
-   [food.types :as t]
+   [food.types :refer :all ]
    [food.eval :as e]
    [food.util :as u]
-   [food.mathem :as mathem]))
+   )
+  )
 
-(def data-states (atom [{}]))
-(def scope (u/scope nil [] data-states))
+(def scope (Scope nil [] "test-db"))
 
 (defn doit []
     (let [
-          candidates  (e/evaluate (t/SearchQuery "lingongrova" (t/Mathem)) scope)
+          candidates  (e/evaluate (SearchQuery "lingongrova" (Mathem)) scope)
           lingongrova (-> candidates
-                          (t/CandidateList-items)
+                          (CandidateList-items)
                           (first))
-          _            (e/evaluate (t/CreateList "food") scope)
-          _            (e/evaluate (t/AddItem "food" lingongrova) scope)
+          _            (e/evaluate (CreateList "food") scope)
+          _            (e/evaluate (AddItem "food" lingongrova) scope)
           ]
       )
-    )
+  )
+
 (doit)
-(last @data-states)
+;; (last @data-states)
