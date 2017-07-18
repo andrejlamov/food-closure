@@ -4,17 +4,29 @@
    [clojure.string :as string]
    [clojure.edn :as edn]))
 
-(defn create-event-log [db-root list-name]
-  (let [path (str db-root "/" list-name)]
-    (io/make-parents (str db-root "/" list-name))
-    path))
 
-(defn append-to-event-log [db-root list-name d]
-  (let [path (create-event-log db-root list-name)]
-    (spit path (str (pr-str d) "\n") :append true)))
+(defn path [db-root list-name]
+  (str db-root "/" list-name))
 
-(defn read-from-event-log [db-root list-name]
-  (->> (str db-root "/" list-name)
+(defn create-event-log [path]
+  (io/make-parents path))
+
+(defn append-to-event-log [path d]
+  (create-event-log path)
+  (spit path (str (pr-str d) "\n") :append true))
+
+(defn read-event-log [path]
+  (->> path
        (slurp)
        (string/split-lines)
        (map edn/read-string)))
+
+(defn reduce-events [events]
+  events)
+
+(defn read-all-logs [db-root]
+  (->> (io/file db-root)
+       (file-seq)
+       (rest)
+       (map read-event-log)))
+

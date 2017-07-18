@@ -18,11 +18,14 @@
 (defmethod evaluate :SearchQuery [d s]
   (channels/publish [(Scope-channel s)] (searchQuery d)))
 (defmethod evaluate :CreateList [d s]
-  (db/create-event-log (Scope-db-root s) (CreateList-name d))
+  (db/create-event-log
+   (db/path (Scope-db-root s) (CreateList-name d)))
   (channels/publish (Scope-channel-hub s) d))
 (defmethod evaluate :AddItem [d s]
-  (db/append-to-event-log (Scope-db-root s)
-                (AddItem-list-name d)
-                (AddItem-item d))
+  (db/append-to-event-log
+   (db/path (Scope-db-root s) (AddItem-list-name d))
+   d)
   (channels/publish (Scope-channel-hub s) d))
-
+(defmethod evaluate :Lists [d s]
+  (->> (db/read-all-logs (Scope-db-root))
+       (channels/publish [(Scope-channel s)])))
