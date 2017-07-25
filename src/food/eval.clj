@@ -3,7 +3,7 @@
    [org.httpkit.server :refer :all]
    [food.db :as db]
    [food.channels :as channels]
-   [food.macros :refer :all ]
+   [food.macros :refer :all]
    [food.types :refer :all]))
 
 (defmulti searchQuery (fn [d] (->> d (SearchQuery-store) (get-type))))
@@ -23,9 +23,10 @@
   (channels/publish (Scope-channel-hub s) d))
 (defmethod evaluate :AddItem [d s]
   (db/append-to-event-log
-   (db/path (Scope-db-root s) (AddItem-list-name d))
+   (Scope-db-root s) (AddItem-list-name d)
    d)
-  (channels/publish (Scope-channel-hub s) d))
-(defmethod evaluate :Lists [d s]
-  (->> (db/read-all-logs (Scope-db-root))
+  (evaluate (AllLists) s))
+(defmethod evaluate :AllLists [_ s]
+  (->> (db/read-all-logs (Scope-db-root s))
        (channels/publish [(Scope-channel s)])))
+

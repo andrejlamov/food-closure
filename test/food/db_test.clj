@@ -21,7 +21,9 @@
   (let [fruits [(AddItem "fruits" (Item "apple" "apple.jpg"))
                 (AddItem "fruits" (Item "orange" "orange.jpg"))]
         _      (doall
-                (map (partial db/append-to-event-log (str db-root "fruits")) fruits))
-        read-fruits  (first (db/read-all-logs db-root))]
-    (t/is (= fruits read-fruits))))
+                (map (partial db/append-to-event-log db-root "fruits") fruits))
+        stored-lists  (db/read-all-logs db-root)]
+    (t/is (=
+           (Lists [(List "fruits" fruits)])
+           stored-lists))))
 

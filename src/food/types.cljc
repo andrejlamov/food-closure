@@ -8,6 +8,8 @@
 (defn-type Mathem)
 
 (defn-type SearchQuery :text :store)
+(defn-type AllLists)
+
 (defn-type CandidateList :items)
 (defn-type Item :title :image)
 (defn-type List :name :items)

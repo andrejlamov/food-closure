@@ -1,5 +1,10 @@
 (ns food.macros)
 
+(defn js-to-clj [d]
+  #?(:clj d
+     :cljs (js->clj d :keywordize-keys true)))
+
+
 (defmacro -defn-constructor [name & keys]
   `(defn ~name [& values#]
      (do
@@ -13,7 +18,10 @@
      (defn ~(symbol
              (str typename "-" (name key)))
        [data#]
-       (-> data# :data ~key))))
+       (->> data#
+            js-to-clj
+            :data
+            ~key))))
 
 (defmacro -defn-key-path [typename key]
   `(defn ~(symbol
@@ -41,4 +49,6 @@
 
 (defn get-type [d] (-> d :meta :type))
 
-
+(defmacro ... [& expr]
+  `(fn [p#] (.. p# ~@expr))
+  )

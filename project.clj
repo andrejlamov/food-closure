@@ -15,7 +15,8 @@
                  [ring "1.6.0-RC1"]
                  [ring-cljsjs "0.1.0"]
                  [cljsjs/semantic-ui "2.2.4-0"]
-                 [cljsjs/d3 "4.3.0-5"]]
+                 [cljsjs/d3 "4.3.0-5"]
+                 [cljsjs/jquery "3.2.1-0"]]
 
   :plugins [[lein-figwheel "0.5.4"]]
   :clean-targets [:target-path "out"]
