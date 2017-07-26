@@ -18,51 +18,66 @@
 (defn view-state [data]
   [{:merge (... (attr "class" "ui top attached topbar menu"))
     :tag "div"
-    :children [
-               ;; {:tag "a"
-               ;;  :id "toggle menu"
-               ;;  :merge (... (attr "class" "icon item toggle_sidebar"))
-               ;;  :children [{:tag "i"
-               ;;             :merge (... (attr "class" "content icon"))}]}
-               ;; {:tag "div"
-               ;;  :merge (... (attr "class" "ui transparent icon input"))
-               ;;  :children [{:tag "input"
-               ;;              :merge (... (attr "type" "text")
-               ;;                          (on "keypress" (fn []
-               ;;                                           (this-as this
-               ;;                                             (->>  this
-               ;;                                                   .-value
-               ;;                                                   println))
-               ;;                                             )))
-               ;;                                             }
-               ;;             {:tag "i"
-               ;;              :merge (... (attr "class" "search icon"))}]}
-               ]
+    :children [{:tag "a"
+                :merge (... (attr "class" "icon item toggle_sidebar"))
+                :children [{:tag "i"
+                            :merge (... (attr "class" "content icon"))}]}
+               {:tag "div"
+                :merge (... (attr "class" "ui transparent icon input"))
+                :children [{:tag "input"
+                            :merge (... (attr "type" "text")
+                                        (on "keypress" (fn []
+                                                         (this-as this
+                                                                  (->>  this
+                                                                        .-value
+                                                                        println)))))}
+                           {:tag "i"
+                            :merge (... (attr "class" "search icon"))}]}]}
 
-    }
+   {:tag "div"
+    :merge (... (attr "class" "ui bottom attached segment pushable"))
+    :children [{:enter (... (attr "class" "ui left inline vertical sidebar menu"))
+                :tag "div"
+                :children (map (fn [c]
+                                 {:tag "a"
+                                  :id (t/List-name c)
+                                  :onexit (...
+                                           (style "transform" "scaleY(1)")
+                                           transition
+                                           (duration 2000)
+                                           (style "height" "0px")
+                                           (style "padding-top" "0")
+                                           (style "padding-bottom" "0")
+                                           (style "transform" "scaleY(0)"))
+                                  :onenter (...
+                                            (each (fn [d]
+                                                    (this-as this
+                                                             (let [self   (.. js/d3 (select this))
+                                                                   height (.. self (style "height"))
+                                                                   top    (.. self (style "padding-top"))
+                                                                   bottom (.. self (style "padding-bottom"))]
+                                                               (.. self
+                                                                   (style "transform" "scaleY(0)")
+                                                                   (style "padding-bottom" 0)
+                                                                   (style "padding-top" 0)
+                                                                   (style "height" 0)
+                                                                   (transition)
+                                                                   (duration 2000)
+                                                                   (style "height" height)
+                                                                   (style "transform" "scaleY(1)")
+                                                                   (style "padding-bottom" top)
+                                                                   (style "padding-top" bottom)))))))
+                                  :merge (... (attr "class" "item")
+                                              (text (fn [] (t/List-name c))))})
+                               (->> (t/Lists-lists data)
+                                    (rest)
+                                    (rest)))}
 
-   ;; {:tag "div"
-   ;;  :merge (... (attr "class" "ui bottom attached segment pushable"))
-   ;;  :children [{:enter (... (attr "class" "ui left inline vertical sidebar menu"))
-   ;;              :tag "div"
-   ;;              :children (map (fn [c]
-   ;;                               {:tag "a"
-   ;;                                :id (t/List-name c)
-   ;;                                :animate_enter "slide right"
-   ;;                                :animate_exit "slide right"
-   ;;                                :merge (... (attr "class" "item")
-   ;;                                            (text (fn [] (t/List-name c))))
-   ;;                                })
-   ;;                             (->> (t/Lists-lists data)
-   ;;                                  ;; (rest)
-   ;;                                  ))}
-
-   ;;             {:tag "div"
-   ;;              :enter (... (attr "class" "pusher"))
-   ;;              :children [{:tag "div"
-   ;;                          :merge (... (attr
-                                         ;; "class" "ui basic segment"))}]}]}
-])
+               {:tag "div"
+                :enter (... (attr "class" "pusher"))
+                :children [{:tag "div"
+                            :merge (... (attr
+                                         "class" "ui basic segment"))}]}]}])
 
 (defn render [parent state]
   (let [joined  (.. parent
@@ -82,28 +97,25 @@
     (.. exited
         (each (fn [d]
                 (this-as this
-                         (let [self (.. js/d3 (select this))]
-                           (if (and d (.-animate_exit d))
-                             (.transition (js/$ this)
-                                          (clj->js
-                                           {:animation (.-animate_exit d)
-                                            :onComplete #(.. self remove)}))
-                             (.. self remove)))))))
+                         (let [self (.. js/d3 (select this))
+                               onexit (or (.-onexit d) identity)]
+                           (.. (onexit self)
+                               (on "end" (fn []
+                                           (this-as this
+                                                    (.. js/d3
+                                                        (select this)
+                                                        (remove)))))))))))
 
     (.. entered
         (each (fn [d i]
                 (this-as this
                          (let [draw   (or (.-merge d) (.-enter d) identity)
                                children  (or (.-children d) [])
-                               entered (->> (.. js/d3
-                                                (select this))
-                                            (draw))]
-                           (when (.-animate_enter d)
-                             (.. entered
-                                 (classed "transition hidden" true))
-                             (.transition (js/$ this)
-                                          (clj->js {:animation (.-animate_enter d)})))
-                           (render entered children))))))
+                               onenter (or (.-onenter d) identity)
+                               self (->> (.. js/d3 (select this))
+                                         draw
+                                         onenter)]
+                           (render self children))))))
     (.. joined
         (each (fn [d]
                 (let [draw  (or (.-merge d) identity)
