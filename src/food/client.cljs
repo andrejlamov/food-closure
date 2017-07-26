@@ -15,93 +15,103 @@
   (println "*** cljs: " args)
   args)
 
-
-
 (defn view-state [data]
   [{:merge (... (attr "class" "ui top attached topbar menu"))
-    :element "div"
-    :children [{:element "a"
-                :id "toggle menu"
-                :merge (... (attr "class" "icon item toggle_sidebar"))
-                :children [{:element "i"
-                            :merge (... (attr "class" "content icon"))}]}
-               {:element "div"
-                :merge (... (attr "class" "ui transparent icon input"))
-                :children [{:element "input"
-                            :merge (... (attr "type" "text"))}
-                           {:element "i"
-                            :merge (... (attr "class" "search icon"))}]}]}
+    :tag "div"
+    :children [
+               ;; {:tag "a"
+               ;;  :id "toggle menu"
+               ;;  :merge (... (attr "class" "icon item toggle_sidebar"))
+               ;;  :children [{:tag "i"
+               ;;             :merge (... (attr "class" "content icon"))}]}
+               ;; {:tag "div"
+               ;;  :merge (... (attr "class" "ui transparent icon input"))
+               ;;  :children [{:tag "input"
+               ;;              :merge (... (attr "type" "text")
+               ;;                          (on "keypress" (fn []
+               ;;                                           (this-as this
+               ;;                                             (->>  this
+               ;;                                                   .-value
+               ;;                                                   println))
+               ;;                                             )))
+               ;;                                             }
+               ;;             {:tag "i"
+               ;;              :merge (... (attr "class" "search icon"))}]}
+               ]
 
-   {:element "div"
-    :merge (... (attr "class" "ui bottom attached segment pushable"))
-    :children [{:enter (... (attr "class" "ui left inline vertical sidebar menu"))
-                :element "div"
-                :children (map (fn [c]
-                                 {:element "a"
-                                  :id (t/List-name c)
-                                  :animate_enter "slide right"
-                                  :animate_exit "slide right"
-                                  :merge (... (attr "class" "item")
-                                              (text (fn [] (t/List-name c))))
-                                  })
-                               (->> (t/Lists-lists data)))}
+    }
 
-               {:element "div"
-                :enter (... (attr "class" "pusher"))
-                :children [{:element "div"
-                            :merge (... (attr "class" "ui basic segment"))}]}]}])
+   ;; {:tag "div"
+   ;;  :merge (... (attr "class" "ui bottom attached segment pushable"))
+   ;;  :children [{:enter (... (attr "class" "ui left inline vertical sidebar menu"))
+   ;;              :tag "div"
+   ;;              :children (map (fn [c]
+   ;;                               {:tag "a"
+   ;;                                :id (t/List-name c)
+   ;;                                :animate_enter "slide right"
+   ;;                                :animate_exit "slide right"
+   ;;                                :merge (... (attr "class" "item")
+   ;;                                            (text (fn [] (t/List-name c))))
+   ;;                                })
+   ;;                             (->> (t/Lists-lists data)
+   ;;                                  ;; (rest)
+   ;;                                  ))}
+
+   ;;             {:tag "div"
+   ;;              :enter (... (attr "class" "pusher"))
+   ;;              :children [{:tag "div"
+   ;;                          :merge (... (attr
+                                         ;; "class" "ui basic segment"))}]}]}
+])
 
 (defn render [parent state]
-  (when (not (empty? state))
-    (let [joined  (.. parent
-                      (selectAll #(this-as this
-                                    (let [nodes (aget this "childNodes")]
-                                      nodes)))
-                      (data (clj->js state) (fn [d i]
-                                              (or (.-id d) i))))
-          exited  (.. joined exit)
+  (let [joined  (.. parent
+                    (selectAll #(this-as this
+                                         (let [nodes (js/Array.from (aget this "childNodes"))]
+                                           (.filter nodes (fn [n] (.-tagName n))))))
+                    (data (clj->js state) (fn [d i] (or (.-id d) i))))
+        exited  (.. joined exit)
 
-          entered  (.. joined
-                       enter
-                       (append
-                        (fn [d i]
-                          (.createElement
-                           js/document
-                           (.-element d)))))]
-      (.. exited
-          (each (fn [d]
-                  (if (and d (.-animate_exit d))
-                    (this-as this
-                      (.transition (js/$ this)
-                                   (clj->js
-                                    {:animation (.-animate_exit d)
-                                     :onComplete #(.. exited remove)})))
-                    (.. exited remove)))))
+        entered  (.. joined
+                     enter
+                     (append
+                      (fn [d i]
+                        (.createElement
+                         js/document
+                         (.-tag d)))))]
+    (.. exited
+        (each (fn [d]
+                (this-as this
+                         (let [self (.. js/d3 (select this))]
+                           (if (and d (.-animate_exit d))
+                             (.transition (js/$ this)
+                                          (clj->js
+                                           {:animation (.-animate_exit d)
+                                            :onComplete #(.. self remove)}))
+                             (.. self remove)))))))
 
-      (.. entered
-          (each (fn [d i]
+    (.. entered
+        (each (fn [d i]
+                (this-as this
+                         (let [draw   (or (.-merge d) (.-enter d) identity)
+                               children  (or (.-children d) [])
+                               entered (->> (.. js/d3
+                                                (select this))
+                                            (draw))]
+                           (when (.-animate_enter d)
+                             (.. entered
+                                 (classed "transition hidden" true))
+                             (.transition (js/$ this)
+                                          (clj->js {:animation (.-animate_enter d)})))
+                           (render entered children))))))
+    (.. joined
+        (each (fn [d]
+                (let [draw  (or (.-merge d) identity)
+                      children (or (.-children d) [])]
                   (this-as this
-                    (let [draw   (or (.-merge d) (.-enter d) identity)
-                          children  (or (.-children d) [])
-                          entered (->> (.. js/d3
-                                           (select this))
-                                       (draw)
-                                       )]
-                      (when (.-animate_enter d)
-                        (.. entered
-                            (classed "transition hidden" true))
-                        (.transition (js/$ this)
-                                     (clj->js {:animation (.-animate_enter d)})))
-                      (render entered children)
-                      )))))
-      (.. joined
-          (each (fn [d]
-                  (let [draw  (or (.-merge d) identity)
-                        children (or (.-children d) [])]
-                    (this-as this
-                      (->> (.. js/d3 (select this))
-                           (draw)
-                        (#(render %1 children)))))))))))
+                           (->> (.. js/d3 (select this))
+                                (draw)
+                                (#(render %1 children))))))))))
 
 (add-watch
  data :watcher
