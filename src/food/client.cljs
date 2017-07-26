@@ -15,7 +15,7 @@
   (println "*** cljs: " args)
   args)
 
-(defn view-state [data]
+(defn view [data]
   [{:merge (... (attr "class" "ui top attached topbar menu"))
     :tag "div"
     :children [{:tag "a"
@@ -50,7 +50,7 @@
                                            (style "padding-bottom" "0")
                                            (style "transform" "scaleY(0)"))
                                   :onenter (...
-                                            (each (fn [d]
+                                            (each (fn []
                                                     (this-as this
                                                              (let [self   (.. js/d3 (select this))
                                                                    height (.. self (style "height"))
@@ -130,7 +130,7 @@
  (fn [_key _atom _old-state new-state]
 
    (render (.. js/d3 (select "#app"))
-           (view-state new-state))
+           (view new-state))
 
    (.. (js/$ ".sidebar")
        (sidebar (clj->js
