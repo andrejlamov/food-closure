@@ -9,7 +9,7 @@
 
 (def ws (js/WebSocket. "ws://localhost:3449/ws"))
 
-(def client-data (atom {"sidebar-is-visible" true}))
+(def client-data (atom {:sidebar {:visible true}}))
 (def server-data (atom []))
 
 (add-watch
@@ -23,9 +23,10 @@
 
 (defn toggle-sidebar []
   (.sidebar (js/$ "#app .bottom .sidebar") "toggle")
-  (swap! client-data update "sidebar-is-visible" not true))
+  (swap! client-data update-in [:sidebar :visible]  not true))
+
 (defn sidebar-is-visible []
-  (get @client-data "sidebar-is-visible" false))
+  (get-in @client-data [:sidebar :visible] false))
 
 (defn view [server-data client-data]
   [
