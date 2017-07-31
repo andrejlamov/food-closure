@@ -1,7 +1,6 @@
 (ns food.types
   (:require [food.macros :refer [defn-type]]))
 
-(defn-type Scope :channel :channel-hub :db-root)
 (defn-type Subscribe)
 (defn-type Unsubscribe)
 

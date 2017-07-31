@@ -1,6 +1,5 @@
 (ns food.eval
   (:require
-   [org.httpkit.server :refer :all]
    [food.db :as db]
    [food.channels :as channels]
    [food.macros :refer :all]
@@ -8,24 +7,20 @@
 
 (defmulti searchQuery (fn [d] (->> d (SearchQuery-store) (get-type))))
 
-(defmulti evaluate (fn [d s] (get-type d)))
-(defmethod evaluate :Subscribe   [_ s]
-  (channels/subscribe (Scope-channel s)))
-(defmethod evaluate :Unsubscribe [_ s]
-  (channels/unsubscribe (Scope-channel s)))
-(defmethod evaluate :SearchQuery [d s]
-  (channels/publish-to-all (searchQuery d)))
-(defmethod evaluate :CreateList [d s]
-  (db/create-event-log
-   (db/path (Scope-db-root s) (CreateList-name d)))
+(defmulti evaluate (fn [d channel db-root] (get-type d)))
+(defmethod evaluate :Subscribe   [_ channel db-root]
+  (channels/subscribe channel))
+(defmethod evaluate :Unsubscribe [_ channel db-root]
+  (channels/unsubscribe channel))
+(defmethod evaluate :SearchQuery [d channel _]
+  (channels/send channel (searchQuery d)))
+(defmethod evaluate :CreateList [d channel db-root]
+  (db/create-event-log db-root (CreateList-name d))
   (channels/publish-to-all d))
-(defmethod evaluate :AddItem [d s]
-  (db/append-to-event-log
-   (Scope-db-root s) (AddItem-list-name d)
-   d)
-  (evaluate (AllLists) s))
-(defmethod evaluate :AllLists [_ s]
-  (->> (Scope-db-root s)
+(defmethod evaluate :AddItem [d channel db-root]
+  (db/append-to-event-log db-root (AddItem-list-name d) d)
+  (evaluate (AllLists) channel db-root))
+(defmethod evaluate :AllLists [_ channel db-root]
+  (->> db-root
        (db/read-all-logs)
-       (channels/send (Scope-channel s))))
-
+       (channels/send channel)))

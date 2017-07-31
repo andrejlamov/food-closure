@@ -5,8 +5,7 @@
    [clojure.string :as string]
    [clojure.edn :as edn]))
 
-
-(defn path [db-root list-name]
+(defn- path [db-root list-name]
   (str db-root "/" list-name))
 
 (defn create-event-log [db-root list-name]
@@ -33,4 +32,3 @@
        (rest)
        (map read-event-log)
        (Lists)))
-
