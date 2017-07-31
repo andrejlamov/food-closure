@@ -1,7 +1,6 @@
 (ns food.server
   (:gen-class)
   (:require [clojure.edn :as edn]
-            [clojure.tools.namespace.repl :refer [disable-unload!]]
             [compojure.core :refer [defroutes GET]]
             [compojure.handler :refer [site]]
             [compojure.route :refer [resources]]
@@ -10,8 +9,6 @@
             food.util
             [org.httpkit.server :refer :all]
             [ring.middleware.cljsjs :refer [wrap-cljsjs]]))
-
-(disable-unload!)
 
 (defonce channel-hub (atom #{}))
 (def db-path "db/")
