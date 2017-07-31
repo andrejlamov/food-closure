@@ -14,11 +14,11 @@
 (defmethod evaluate :Unsubscribe [_ s]
   (channels/unsubscribe (Scope-channel s)))
 (defmethod evaluate :SearchQuery [d s]
-  (channels/publish (searchQuery d)))
+  (channels/publish-to-all (searchQuery d)))
 (defmethod evaluate :CreateList [d s]
   (db/create-event-log
    (db/path (Scope-db-root s) (CreateList-name d)))
-  (channels/publish d))
+  (channels/publish-to-all d))
 (defmethod evaluate :AddItem [d s]
   (db/append-to-event-log
    (Scope-db-root s) (AddItem-list-name d)

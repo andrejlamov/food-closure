@@ -9,7 +9,7 @@
   (sut/subscribe 2)
 
   (t/is (= [{:channel 1 :msg "hello"}
-            {:channel 2 :msg "hello"}] (sut/publish "hello")))
+            {:channel 2 :msg "hello"}] (sut/publish-to-all "hello")))
 
   (sut/unsubscribe 1)
 

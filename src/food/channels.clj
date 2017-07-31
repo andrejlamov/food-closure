@@ -17,6 +17,6 @@
     (send! channel (pr-str data)))
   {:channel channel :msg data})
 
-(defn publish [data]
+(defn publish-to-all [data]
   (map #(send % data) @hub))
 
