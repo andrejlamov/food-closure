@@ -9,24 +9,38 @@
 
 (def ws (js/WebSocket. "ws://localhost:3449/ws"))
 
-(def client-data (atom {:sidebar {:visible true}}))
-(def server-data (atom []))
+(defn send [d]
+  (->> d
+       (prn-str)
+       (.send ws)))
 
-(add-watch
- client-data :watcher
- (fn [_key _atom _old-state new-state]
-   (println "*** client state")
-   (println new-state)))
+
+(defonce client-data (atom {:sidebar {:visible true}}))
+(defonce server-data (atom []))
 
 (defn destruct [[tag funs & children]]
   (js->clj [tag funs (or children [])] :keywordize-keys true))
 
 (defn toggle-sidebar []
-  (.sidebar (js/$ "#app .bottom .sidebar") "toggle")
-  (swap! client-data update-in [:sidebar :visible]  not true))
+  (.. (js/$ "#app .bottom .sidebar")
+      (transition (clj->js
+                   { :onComplete #(swap! client-data update-in [:sidebar :visible] not true) }))
+      (sidebar "toggle")))
 
 (defn sidebar-is-visible []
   (get-in @client-data [:sidebar :visible] false))
+
+(defn set-current-list [list-name]
+  (swap! client-data assoc-in [:list :current] list-name))
+
+(defn get-current-list []
+  (get-in @client-data [:list :current] nil))
+
+(defn set-candidate-list [candidate-list]
+  (swap! client-data assoc-in [:candidate-list] candidate-list))
+
+(defn get-candidate-list []
+  (get-in @client-data [:candidate-list] (t/CandidateList [])))
 
 (defn view [server-data client-data]
   [
@@ -34,21 +48,31 @@
      ["a" {:merge (... (attr "class" "icon item toggle_sidebar")
                        (on "click" toggle-sidebar))}
       ["i" {:merge (... (attr "class" "content icon"))}]]
-
+     ["div" {:merge (... (attr "class" "item")
+                         (style "display"
+                                (if (get-current-list)
+                                  "" "none"))
+                         (text get-current-list))
+            }]
      ["div" {:merge (... (attr "class" "ui transparent icon input"))}
       ["input" {:merge (... (attr "type" "text")
-                            (on "keypress" (fn [] (this-as this
-                                                   (->> this
-                                                        .-value
-                                                        println)))))}]
-      ["i" {:merge (... (attr "class" "search icon"))}]] ]
+                            (on "keydown" (fn [] (this-as this
+                                                  (send (t/SearchQuery (.-value this) (t/Mathem)))))))
+                }]
+      ["i" {:merge (... (attr "class" "search icon"))}]]
+     ]
 
     ["div" {:merge (... (attr "class" "ui bottom attached segment pushable"))}
      ["div" {:merge (... (attr "class" "ui left inline vertical sidebar menu")
                          (classed "visible" sidebar-is-visible))}
-      (for [l (t/Lists-lists server-data)]
+      (for [l
+            (->> (t/Lists-lists server-data))
+            ]
         ["a" {:merge (... (attr "class" "item")
-                          (text (fn [] (t/List-name l))))
+                          (text (fn [] (t/List-name l)))
+                          (on "click" (fn []
+                                        (set-current-list (t/List-name l)))
+                                        ))
               :id (t/List-name l)
               :onexit (... (style "transform" "scaleY(1)")
                            transition
@@ -73,16 +97,28 @@
                                         (style "height" height)
                                         (style "transform" "scaleY(1)")
                                         (style "padding-bottom" top)
-                                        (style "padding-top" bottom)))))))}])]
+                                        (style "padding-top" bottom)))))))}])
+
+      ]
      ["div" {:merge (... (attr "class" "pusher")
                          (classed "dimmed" sidebar-is-visible)
                          (on "click" (fn [] (when (sidebar-is-visible)
                                              (toggle-sidebar)))))}
-      ["div" {:merge (... (attr "class" "ui basic segment"))}]]]])
+      ["div" {:merge (... (attr "class" "ui basic segment"))}
+       (for [i (t/CandidateList-items (get-candidate-list))]
+         ["img" {
+                 ;; :id (t/Item-title i)
+                 :merge (... (attr "src" (fn [] (t/Item-image i))))
+                 }
+          ]
+         )
+       ]]]])
 
 (defn children-in-collection? [children]
-  (let [[[head & _] :as child & other] children]
-    (vector? head)))
+  (if (= '(()) children)
+    true
+    (let [[[head & _] :as child & other] children]
+      (vector? head))))
 
 (defn render [parent children]
   (if (children-in-collection? children)
@@ -108,7 +144,7 @@
                   (this-as this
                     (let [self (.. js/d3 (select this))
                           [tag {:keys [onexit]} children] (destruct d)
-                          onexit (or onexit identity)]
+                          onexit (or onexit (... remove))]
                       (.. (onexit self)
                           (on "end" (fn []
                                       (this-as this
@@ -137,10 +173,10 @@
 
 (add-watch
  server-data :watcher
- (fn [_key _atom _old-state new-state]
+ (fn [_key _atom _old-state server-data]
 
    (render (.. js/d3 (select "#app"))
-           (view new-state @client-data))
+           (view server-data @client-data))
 
    (.. (js/$ ".sidebar")
        (sidebar (clj->js
@@ -148,27 +184,30 @@
        (sidebar "setting" "transition" "overlay"))
    ))
 
-(defn send [d]
-  (->> d
-       (prn-str)
-       (.send ws)))
+(add-watch
+ client-data :watcher
+ (fn [_key _atom _old-state client-data]
+   (println "*** client state")
+   (println client-data)
+   (render (.. js/d3 (select "#app"))
+           (view @server-data client-data))
+
+   ))
 
 (defmulti evaluate m/get-type)
 (defmethod evaluate :CandidateList [d]
-  (->>
-   d
-   (t/CandidateList-items)
-   (first)
-   (t/AddItem "nuts")
-   (send)))
-
+  (set-candidate-list d))
 (defmethod evaluate :Lists [new-data]
   (reset! server-data new-data))
 
 (defn main []
+  (println "client main")
   (send (t/AllLists))
-  ;; (send (t/SearchQuery "rostade mandlar" (t/Mathem)))
-)
+  (render (.. js/d3 (select "#app"))
+          (view @server-data @client-data))
+
+  )
+
 (set! (.-onopen ws) (fn []
                       (send (t/Subscribe))
                       (main)))
@@ -177,3 +216,4 @@
                          (->> (.-data server-data)
                               (cljs.reader/read-string)
                               (evaluate))))
+
