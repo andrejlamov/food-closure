@@ -10,23 +10,22 @@
 
 (defmulti evaluate (fn [d s] (get-type d)))
 (defmethod evaluate :Subscribe   [_ s]
-  (channels/subscribe (Scope-channel s)
-                      (Scope-channel-hub s)))
+  (channels/subscribe (Scope-channel s)))
 (defmethod evaluate :Unsubscribe [_ s]
-  (channels/unsubscribe (Scope-channel s)
-                        (Scope-channel-hub s)))
+  (channels/unsubscribe (Scope-channel s)))
 (defmethod evaluate :SearchQuery [d s]
-  (channels/publish [(Scope-channel s)] (searchQuery d)))
+  (channels/publish (searchQuery d)))
 (defmethod evaluate :CreateList [d s]
   (db/create-event-log
    (db/path (Scope-db-root s) (CreateList-name d)))
-  (channels/publish (Scope-channel-hub s) d))
+  (channels/publish d))
 (defmethod evaluate :AddItem [d s]
   (db/append-to-event-log
    (Scope-db-root s) (AddItem-list-name d)
    d)
   (evaluate (AllLists) s))
 (defmethod evaluate :AllLists [_ s]
-  (->> (db/read-all-logs (Scope-db-root s))
-       (channels/publish [(Scope-channel s)])))
+  (->> (Scope-db-root s)
+       (db/read-all-logs)
+       (channels/send (Scope-channel s))))
 

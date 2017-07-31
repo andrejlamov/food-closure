@@ -10,14 +10,13 @@
             [org.httpkit.server :refer :all]
             [ring.middleware.cljsjs :refer [wrap-cljsjs]]))
 
-(defonce channel-hub (atom #{}))
 (def db-path "db/")
 
 (defn evaluate [data channel]
   (food.util/log data)
   (food.eval/evaluate
    data
-   (food.types/Scope channel channel-hub db-path)))
+   (food.types/Scope channel nil db-path)))
 
 (defn ws-handler [request]
   (with-channel request channel

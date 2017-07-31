@@ -1,20 +1,22 @@
 (ns food.channels
   (:require
-   [org.httpkit.server :refer :all]))
+   [org.httpkit.server :refer [send! Channel]]))
 
-(defn subscribe [channel channels]
-  (when channel
-    (swap! channels conj channel)))
+(defonce hub (atom #{}))
 
-(defn unsubscribe [channel channels]
-  (when channel
-    (swap! channels
-           (fn [state e] (set (remove #{e} state)))
-           channel)))
+(defn subscribe [channel]
+  (swap! hub conj channel))
 
-(defn publish [channels data]
-  (doseq [c channels]
-    (when c
-      (send! c (pr-str data))))
-  data)
+(defn unsubscribe [channel]
+  (swap! hub
+         (fn [state e] (set (remove #{e} state)))
+         channel))
+
+(defn send [channel data]
+  (when (satisfies? Channel channel)
+    (send! channel (pr-str data)))
+  {:channel channel :msg data})
+
+(defn publish [data]
+  (map #(send % data) @hub))
 

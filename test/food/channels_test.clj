@@ -2,13 +2,16 @@
   (:require [food.channels :as sut]
             [clojure.test :as t]))
 
-(t/deftest manipulate-atom-set
-  (let [hub (atom #{1})]
-    (sut/subscribe 2 hub)
-    (t/is (= #{1 2} @hub))
+(t/deftest channels-test
 
-    (sut/unsubscribe 2 hub)
-    (t/is (= #{1} @hub))
-    )
-  )
+  (sut/subscribe 1)
+
+  (sut/subscribe 2)
+
+  (t/is (= [{:channel 1 :msg "hello"}
+            {:channel 2 :msg "hello"}] (sut/publish "hello")))
+
+  (sut/unsubscribe 1)
+
+  (t/is (= #{2} @sut/hub)))
 
