@@ -2,6 +2,10 @@
   (:require [food.channels :as sut]
             [clojure.test :as t]))
 
+(t/use-fixtures :each (fn [f]
+                        (reset! sut/hub #{})
+                        (f)))
+
 (t/deftest channels-test
 
   (sut/subscribe 1)
