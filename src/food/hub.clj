@@ -23,11 +23,10 @@
 (defn publish [{:keys [channels output-queue] :as hub} msg]
   (map #(send hub % msg) @channels))
 
-(defn io-watcher [_key _atom _old-msgs new-msgs]
+(defn io-watcher [key _atom _old-msgs new-msgs]
   (let [{:keys [channel data] :as msg} (last new-msgs)]
-    (println "*** sending" msg)
+    (println "*** hub" key msg)
     (let [data (update-in msg [:channel] str)]
-      (println msg)
       (send! channel (pr-str data)))))
 
 (defn add-io-watcher [{:keys [output-queue]}]

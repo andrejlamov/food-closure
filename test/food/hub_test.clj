@@ -2,6 +2,28 @@
   (:require [food.hub :as sut]
             [clojure.test :refer :all]))
 
+(deftest output-queue-limit-test
+  (let [{:keys [output-queue] :as hub} (sut/construct-channel-hub {:output-limit 3})
+        channel "0.0.0.0:123"
+        ]
+    (testing "return three last messeges"
+      (sut/send hub channel 1)
+      (sut/send hub channel 2)
+      (is (= [
+              {:channel channel :msg 1}
+              {:channel channel :msg 2}
+              {:channel channel :msg 3}
+              ] (sut/send hub channel 3) @output-queue))
+      (sut/send hub channel 4)
+      (is (= [
+              {:channel channel :msg 3}
+              {:channel channel :msg 4}
+              {:channel channel :msg 5}
+              ] (sut/send hub channel 5) @output-queue))
+      )
+    )
+  )
+
 (deftest channels-test
   (let [{:keys [channels output-queue output-limit] :as hub} (sut/construct-channel-hub)]
 
