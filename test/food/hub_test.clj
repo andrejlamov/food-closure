@@ -6,7 +6,7 @@
   (let [{:keys [output-queue] :as hub} (sut/construct-channel-hub {:output-limit 3})
         channel "0.0.0.0:123"
         ]
-    (testing "return three last messeges"
+    (testing "return last three messages"
       (sut/send hub channel 1)
       (sut/send hub channel 2)
       (is (= [
@@ -27,7 +27,7 @@
 (deftest channels-test
   (let [{:keys [channels output-queue output-limit] :as hub} (sut/construct-channel-hub)]
 
-    (testing "these tests assume"
+    (testing "output limit is 1 by default"
       (is (empty? @channels))
       (is (= output-limit 1)))
 
