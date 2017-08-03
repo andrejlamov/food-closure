@@ -4,22 +4,21 @@
             [compojure.core :refer [defroutes GET]]
             [compojure.handler :refer [site]]
             [compojure.route :refer [resources]]
-            [food.eval :as e]
-            [food.hub :as hub]
-            [food.db2 :as db]
+            [clojure.tools.namespace.repl :refer [disable-unload!]]
+            [food.eval]
             [org.httpkit.server :refer :all]
             [ring.middleware.cljsjs :refer [wrap-cljsjs]]))
 
-(defonce hub (hub/construct-channel-hub))
-(defonce db (db/construct-db))
 
-(hub/add-io-watcher hub)
-(db/add-io-watcher db "db")
+(disable-unload!)
+
+(defn evaluate [channel msg]
+  (food.eval/evaluate channel msg))
 
 (defn ws-handler [request]
   (with-channel request channel
-    (on-close channel (fn [status] (e/evaluate {:operation :Unsubscribe} channel hub db)))
-    (on-receive channel (fn [data] (e/evaluate (edn/read-string data) channel hub db)))))
+    (on-close channel (fn [status] (evaluate {:operation :Unsubscribe} channel)))
+    (on-receive channel (fn [data] (evaluate (edn/read-string data) channel)))))
 
 (defroutes routes
   (GET "/ws" [] ws-handler)

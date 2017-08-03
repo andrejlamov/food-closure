@@ -25,7 +25,7 @@
 
 (defn io-watcher [_key _atom _old-msgs new-msgs]
   (let [{:keys [channel data] :as msg} (last new-msgs)]
-    (println "sending" msg)
+    (println "*** sending" msg)
     (let [data (update-in msg [:channel] str)]
       (println msg)
       (send! channel (pr-str data)))))
