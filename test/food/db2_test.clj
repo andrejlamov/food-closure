@@ -17,11 +17,8 @@
 
 (deftest append-to-logs
   (let [{:keys [logs] :as db} (sut/construct-db)]
-    (sut/io-watcher logs "target/")
     (sut/create db "hello log")
     (is (= {"hello log" [1]} (sut/append db "hello log" 1)))
     (is (= {"hello log" [1 2]} (sut/append db "hello log" 2)))
-    (sut/create db "hello second log")
-
-    ))
+    (sut/create db "hello second log")))
 

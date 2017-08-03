@@ -15,7 +15,7 @@
        (.send ws)))
 
 
-(defonce client-data (atom {:sidebar {:visible true}}))
+(defonce client-data (atom {:sidebar {:visible false}}))
 (defonce server-data (atom []))
 
 (defn destruct [[tag funs & children]]
@@ -40,7 +40,13 @@
   (swap! client-data assoc-in [:candidate-list] candidate-list))
 
 (defn get-candidate-list []
-  (get-in @client-data [:candidate-list] (t/CandidateList [])))
+  (get-in @client-data [:candidate-list] []))
+
+(defn search [text]
+  (swap! client-data assoc-in [:search :text] text)
+  (swap! client-data assoc-in [:search :store] :Mathem)
+  (send  {:operation :Search :client-state @client-data})
+  )
 
 (defn view [server-data client-data]
   [
@@ -57,47 +63,48 @@
      ["div" {:merge (... (attr "class" "ui transparent icon input"))}
       ["input" {:merge (... (attr "type" "text")
                             (on "keydown" (fn [] (this-as this
-                                                  (send (t/SearchQuery (.-value this) (t/Mathem)))))))
+                                                  (search (.-value this))
+                                                  ))))
                 }]
       ["i" {:merge (... (attr "class" "search icon"))}]]
      ]
 
     ["div" {:merge (... (attr "class" "ui bottom attached segment pushable"))}
-     ["div" {:merge (... (attr "class" "ui left inline vertical sidebar menu")
+     ["div" {:merge (... (attr "class" "ui left vertical sidebar menu")
                          (classed "visible" sidebar-is-visible))}
-      (for [l
-            (->> (t/Lists-lists server-data))
-            ]
-        ["a" {:merge (... (attr "class" "item")
-                          (text (fn [] (t/List-name l)))
-                          (on "click" (fn []
-                                        (set-current-list (t/List-name l)))
-                                        ))
-              :id (t/List-name l)
-              :onexit (... (style "transform" "scaleY(1)")
-                           transition
-                           (duration 1000)
-                           (style "height" "0px")
-                           (style "padding-top" "0")
-                           (style "padding-bottom" "0")
-                           (style "transform" "scaleY(0)"))
-              :onenter (...
-                        (each (fn []
-                                (this-as this
-                                  (let [self   (.. js/d3 (select this))
-                                        height (.. self (style "height"))
-                                        top    (.. self (style "padding-top"))
-                                        bottom (.. self (style "padding-bottom"))]
-                                    (.. self (style "transform" "scaleY(0)")
-                                        (style "padding-bottom" 0)
-                                        (style "padding-top" 0)
-                                        (style "height" 0)
-                                        transition
-                                        (duration 1000)
-                                        (style "height" height)
-                                        (style "transform" "scaleY(1)")
-                                        (style "padding-bottom" top)
-                                        (style "padding-top" bottom)))))))}])
+      ;; (for [l
+      ;;       (->> (t/Lists-lists server-data))
+      ;;       ]
+      ;;   ["a" {:merge (... (attr "class" "item")
+      ;;                     (text (fn [] (t/List-name l)))
+      ;;                     (on "click" (fn []
+      ;;                                   (set-current-list (t/List-name l)))
+      ;;                                   ))
+      ;;         :id (t/List-name l)
+      ;;         :onexit (... (style "transform" "scaleY(1)")
+      ;;                      transition
+      ;;                      (duration 1000)
+      ;;                      (style "height" "0px")
+      ;;                      (style "padding-top" "0")
+      ;;                      (style "padding-bottom" "0")
+      ;;                      (style "transform" "scaleY(0)"))
+      ;;         :onenter (...
+      ;;                   (each (fn []
+      ;;                           (this-as this
+      ;;                             (let [self   (.. js/d3 (select this))
+      ;;                                   height (.. self (style "height"))
+      ;;                                   top    (.. self (style "padding-top"))
+      ;;                                   bottom (.. self (style "padding-bottom"))]
+      ;;                               (.. self (style "transform" "scaleY(0)")
+      ;;                                   (style "padding-bottom" 0)
+      ;;                                   (style "padding-top" 0)
+      ;;                                   (style "height" 0)
+      ;;                                   transition
+      ;;                                   (duration 1000)
+      ;;                                   (style "height" height)
+      ;;                                   (style "transform" "scaleY(1)")
+      ;;                                   (style "padding-bottom" top)
+      ;;                                   (style "padding-top" bottom)))))))}])
 
       ]
      ["div" {:merge (... (attr "class" "pusher")
@@ -105,10 +112,10 @@
                          (on "click" (fn [] (when (sidebar-is-visible)
                                              (toggle-sidebar)))))}
       ["div" {:merge (... (attr "class" "ui basic segment"))}
-       (for [i (t/CandidateList-items (get-candidate-list))]
+       (for [{:keys [image title]} (get-in client-data [:search-result :list])]
          ["img" {
-                 ;; :id (t/Item-title i)
-                 :merge (... (attr "src" (fn [] (t/Item-image i))))
+                 :id title
+                 :merge (... (attr "src" image))
                  }
           ]
          )
@@ -178,11 +185,7 @@
    (render (.. js/d3 (select "#app"))
            (view server-data @client-data))
 
-   (.. (js/$ ".sidebar")
-       (sidebar (clj->js
-                 {:context (js/$ "#app .ui.bottom.segment")}))
-       (sidebar "setting" "transition" "overlay"))
-   ))
+      ))
 
 (add-watch
  client-data :watcher
@@ -194,26 +197,34 @@
 
    ))
 
-(defmulti evaluate m/get-type)
-(defmethod evaluate :CandidateList [d]
-  (set-candidate-list d))
-(defmethod evaluate :Lists [new-data]
-  (reset! server-data new-data))
+(defn evaluate [data]
+  (doall (for [[path value] data]
+           (swap! client-data assoc-in path value)
+           )))
 
 (defn main []
   (println "client main")
-  (send (t/AllLists))
   (render (.. js/d3 (select "#app"))
           (view @server-data @client-data))
+  (.. (js/$ ".sidebar")
+      (sidebar (clj->js
+                {:context (js/$ "#app .ui.bottom.segment")}))
+      (sidebar "setting" "transition" "overlay"))
 
   )
 
 (set! (.-onopen ws) (fn []
-                      (send (t/Subscribe))
+                      (send {:operation :Subscribe :client-state nil})
                       (main)))
+
+(defn log [a]
+  (println a)
+  a
+  )
 
 (set! (.-onmessage ws) (fn [server-data]
                          (->> (.-data server-data)
                               (cljs.reader/read-string)
+                              :msg
                               (evaluate))))
 

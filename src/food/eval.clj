@@ -1,26 +1,26 @@
 (ns food.eval
   (:require
-   [food.db :as db]
-   [food.channels :as channels]
-   [food.macros :refer :all]
-   [food.types :refer :all]))
+   [food.hub :as hub]
+   [food.db2 :as db]))
 
-(defmulti searchQuery (fn [d] (->> d (SearchQuery-store) (get-type))))
 
-(defmulti evaluate (fn [d channel db-root] (get-type d)))
-(defmethod evaluate :Subscribe   [_ channel db-root]
-  (channels/subscribe channel))
-(defmethod evaluate :Unsubscribe [_ channel db-root]
-  (channels/unsubscribe channel))
-(defmethod evaluate :SearchQuery [d channel _]
-  (channels/send channel (searchQuery d)))
-(defmethod evaluate :CreateList [d channel db-root]
-  (db/create-event-log db-root (CreateList-name d))
-  (channels/publish-to-all d))
-(defmethod evaluate :AddItem [d channel db-root]
-  (db/append-to-event-log db-root (AddItem-list-name d) d)
-  (evaluate (AllLists) channel db-root))
-(defmethod evaluate :AllLists [_ channel db-root]
-  (->> db-root
-       (db/read-all-logs)
-       (channels/send channel)))
+(defmulti searchQuery (fn [client-state]
+                        (get-in client-state [:search :store])))
+
+(defn evaluate [msg channel hub db]
+  (let [{:keys [operation client-state]} msg]
+    (case operation
+      :Unsubscribe (do
+                     (hub/send hub channel [
+                                            [[:channel-hub :connected] false]
+                                            ])
+                     (hub/unsubscribe hub channel))
+      :Subscribe (do (hub/subscribe hub channel)
+                     (hub/send hub channel
+                               [
+                                [[:channel-hub :connected] true]
+                                ]))
+      :Search (let [msg [[[:search-result :list] (searchQuery client-state)]]]
+                (hub/send hub channel msg))
+      )
+    ))

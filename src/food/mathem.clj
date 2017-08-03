@@ -27,9 +27,9 @@
                              image (-> d
                                        (get-image-url)
                                        (prepend-https))]
-                         (Item title image)))
+                         {:title title :image image}))
                data)]
-    (CandidateList items)))
+    items))
 
 (defn parse-and-transform [fetched-data]
   (-> fetched-data
@@ -42,6 +42,5 @@
        (util/get-data :http)
        (parse-and-transform)))
 
-(defmethod eval/searchQuery :Mathem [d]
-  (search (SearchQuery-text d)))
-
+(defmethod eval/searchQuery :Mathem [client-state]
+  (search (get-in client-state [:search :text])))
