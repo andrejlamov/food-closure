@@ -1,4 +1,4 @@
-(ns food.db2
+(ns food.db
   (:require [clojure.data :refer [diff]]))
 
 (defn construct-db

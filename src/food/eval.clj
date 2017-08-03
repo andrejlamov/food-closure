@@ -1,7 +1,7 @@
 (ns food.eval
   (:require
    [food.hub :as hub]
-   [food.db2 :as db]))
+   [food.db :as db]))
 
 (defonce hub (hub/construct-channel-hub))
 (defonce db (db/construct-db))

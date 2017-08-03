@@ -1,5 +1,5 @@
-(ns food.db2-test
-  (:require [food.db2 :as sut]
+(ns food.db-test
+  (:require [food.db :as sut]
             [clojure.test :refer :all]))
 
 (deftest create-logs
