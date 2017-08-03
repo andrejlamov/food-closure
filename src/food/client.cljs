@@ -2,6 +2,8 @@
   (:require [cljsjs.semantic-ui]
             [cljsjs.d3]
             [cljsjs.jquery]
+            [food.components.sidebar :as sidebar]
+            [food.components.topbar :as topbar]
             [food.types :as t]
             [food.macros :as m :refer [...]]))
 
@@ -15,111 +17,47 @@
        (.send ws)))
 
 
-(defonce client-data (atom {:sidebar {:visible false}}))
-(defonce server-data (atom []))
+(def client-state (atom (merge {}
+                               (sidebar/initial-state :sidebar)
+                               )))
+
+(defonce server-state (atom []))
 
 (defn destruct [[tag funs & children]]
   (js->clj [tag funs (or children [])] :keywordize-keys true))
 
-(defn toggle-sidebar []
-  (.. (js/$ "#app .bottom .sidebar")
-      (transition (clj->js
-                   { :onComplete #(swap! client-data update-in [:sidebar :visible] not true) }))
-      (sidebar "toggle")))
-
-(defn sidebar-is-visible []
-  (get-in @client-data [:sidebar :visible] false))
-
 (defn set-current-list [list-name]
-  (swap! client-data assoc-in [:list :current] list-name))
+  (swap! client-state assoc-in [:list :current] list-name))
 
 (defn get-current-list []
-  (get-in @client-data [:list :current] nil))
+  (get-in @client-state [:list :current] nil))
 
 (defn set-candidate-list [candidate-list]
-  (swap! client-data assoc-in [:candidate-list] candidate-list))
+  (swap! client-state assoc-in [:candidate-list] candidate-list))
 
 (defn get-candidate-list []
-  (get-in @client-data [:candidate-list] []))
+  (get-in @client-state [:candidate-list] []))
 
-(defn search [text]
-  (swap! client-data assoc-in [:search :text] text)
-  (swap! client-data assoc-in [:search :store] :Mathem)
-  (send  {:operation :Search :client-state @client-data})
-  )
-
-(defn view [server-data client-data]
+(defn view [server-state client-state]
   [
-    ["div" {:merge (... (attr "class" "ui top attached topbar menu"))}
-     ["a" {:merge (... (attr "class" "icon item toggle_sidebar")
-                       (on "click" toggle-sidebar))}
-      ["i" {:merge (... (attr "class" "content icon"))}]]
-     ["div" {:merge (... (attr "class" "item")
-                         (style "display"
-                                (if (get-current-list)
-                                  "" "none"))
-                         (text get-current-list))
-            }]
-     ["div" {:merge (... (attr "class" "ui transparent icon input"))}
-      ["input" {:merge (... (attr "type" "text")
-                            (on "keydown" (fn [] (this-as this
-                                                  (search (.-value this))
-                                                  ))))
-                }]
-      ["i" {:merge (... (attr "class" "search icon"))}]]
-     ]
-
+   (topbar/create :topbar client-state :sidebar)
     ["div" {:merge (... (attr "class" "ui bottom attached segment pushable"))}
-     ["div" {:merge (... (attr "class" "ui left vertical sidebar menu")
-                         (classed "visible" sidebar-is-visible))}
-      ;; (for [l
-      ;;       (->> (t/Lists-lists server-data))
-      ;;       ]
-      ;;   ["a" {:merge (... (attr "class" "item")
-      ;;                     (text (fn [] (t/List-name l)))
-      ;;                     (on "click" (fn []
-      ;;                                   (set-current-list (t/List-name l)))
-      ;;                                   ))
-      ;;         :id (t/List-name l)
-      ;;         :onexit (... (style "transform" "scaleY(1)")
-      ;;                      transition
-      ;;                      (duration 1000)
-      ;;                      (style "height" "0px")
-      ;;                      (style "padding-top" "0")
-      ;;                      (style "padding-bottom" "0")
-      ;;                      (style "transform" "scaleY(0)"))
-      ;;         :onenter (...
-      ;;                   (each (fn []
-      ;;                           (this-as this
-      ;;                             (let [self   (.. js/d3 (select this))
-      ;;                                   height (.. self (style "height"))
-      ;;                                   top    (.. self (style "padding-top"))
-      ;;                                   bottom (.. self (style "padding-bottom"))]
-      ;;                               (.. self (style "transform" "scaleY(0)")
-      ;;                                   (style "padding-bottom" 0)
-      ;;                                   (style "padding-top" 0)
-      ;;                                   (style "height" 0)
-      ;;                                   transition
-      ;;                                   (duration 1000)
-      ;;                                   (style "height" height)
-      ;;                                   (style "transform" "scaleY(1)")
-      ;;                                   (style "padding-bottom" top)
-      ;;                                   (style "padding-top" bottom)))))))}])
-
-      ]
+     (sidebar/create :sidebar client-state server-state)
      ["div" {:merge (... (attr "class" "pusher")
-                         (classed "dimmed" sidebar-is-visible)
-                         (on "click" (fn [] (when (sidebar-is-visible)
-                                             (toggle-sidebar)))))}
+                         (classed "dimmed" #(sidebar/is-visible :sidebar client-state))
+                         (on "click" #(when (sidebar/is-visible :sidebar client-state)
+                                        (sidebar/toggle :sidebar client-state))))}
       ["div" {:merge (... (attr "class" "ui basic segment"))}
-       (for [{:keys [image title]} (get-in client-data [:search-result :list])]
+       (for [{:keys [image title]} (get-in @client-state [:search-result :list])]
          ["img" {
                  :id title
                  :merge (... (attr "src" image))
                  }
           ]
          )
-       ]]]])
+       ]
+
+      ]]])
 
 (defn children-in-collection? [children]
   (if (= '(()) children)
@@ -179,33 +117,33 @@
                            (#(render %1 children)))))))))))
 
 (add-watch
- server-data :watcher
- (fn [_key _atom _old-state server-data]
+ server-state :watcher
+ (fn [_key atom _old-state server-state]
 
    (render (.. js/d3 (select "#app"))
-           (view server-data @client-data))
+           (view atom client-state))
 
       ))
 
 (add-watch
- client-data :watcher
- (fn [_key _atom _old-state client-data]
+ client-state :watcher
+ (fn [_key atom _old-state client-state]
    (println "*** client state")
-   (println client-data)
+   (println client-state)
    (render (.. js/d3 (select "#app"))
-           (view @server-data client-data))
+           (view server-state atom))
 
    ))
 
 (defn evaluate [data]
   (doall (for [[path value] data]
-           (swap! client-data assoc-in path value)
+           (swap! client-state assoc-in path value)
            )))
 
 (defn main []
   (println "client main")
   (render (.. js/d3 (select "#app"))
-          (view @server-data @client-data))
+          (view server-state client-state))
   (.. (js/$ ".sidebar")
       (sidebar (clj->js
                 {:context (js/$ "#app .ui.bottom.segment")}))
@@ -222,8 +160,8 @@
   a
   )
 
-(set! (.-onmessage ws) (fn [server-data]
-                         (->> (.-data server-data)
+(set! (.-onmessage ws) (fn [server-state]
+                         (->> (.-data server-state)
                               (cljs.reader/read-string)
                               :msg
                               (evaluate))))
