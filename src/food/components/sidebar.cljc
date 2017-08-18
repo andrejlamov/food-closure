@@ -1,5 +1,5 @@
 (ns food.components.sidebar
-  (:require [food.macros :refer [...]]
+  (:require [food.macros :refer [d3]]
             #?(:cljs [cljsjs.jquery])
             ))
 
@@ -17,25 +17,25 @@
   {prefix {:visible true}})
 
 (defn create [prefix client-state server-state]
-  ["div" {:merge (... (attr "class" "ui left vertical sidebar menu")
+  ["div" {:merge (d3 (attr "class" "ui left vertical sidebar menu")
                       (classed "visible" (get-in @client-state [prefix :visible])))}
       ;; (for [l
       ;;       (->> (t/Lists-lists server-data))
       ;;       ]
-      ;;   ["a" {:merge (... (attr "class" "item")
+      ;;   ["a" {:merge (d3 (attr "class" "item")
       ;;                     (text (fn [] (t/List-name l)))
       ;;                     (on "click" (fn []
       ;;                                   (set-current-list (t/List-name l)))
       ;;                                   ))
       ;;         :id (t/List-name l)
-      ;;         :onexit (... (style "transform" "scaleY(1)")
+      ;;         :onexit (d3 (style "transform" "scaleY(1)")
       ;;                      transition
       ;;                      (duration 1000)
       ;;                      (style "height" "0px")
       ;;                      (style "padding-top" "0")
       ;;                      (style "padding-bottom" "0")
       ;;                      (style "transform" "scaleY(0)"))
-      ;;         :onenter (...
+      ;;         :onenter (d3
       ;;                   (each (fn []
       ;;                           (this-as this
       ;;                             (let [self   (.. js/d3 (select this))

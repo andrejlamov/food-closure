@@ -49,6 +49,6 @@
 
 (defn get-type [d] (-> d :meta :type))
 
-(defmacro ... [& expr]
+(defmacro d3 [& expr]
   `(fn [p#] (.. p# ~@expr))
   )
