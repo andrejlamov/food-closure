@@ -28,7 +28,7 @@
   (let [onenter (d3 (attr "style" "test"))]
     (is (=
          [:d {} [
-                 [:a {} [
+                 [:a {:merge_class "1 2"} [
                          [:b {:onenter onenter
                               :merge_class "1 2 3"} []]
                          [:c {} []]
@@ -36,11 +36,11 @@
                   ]
                  ]
           ]
-         (sut/transform [:d>a
+         (sut/transform [:d>a.1.2
                          [[:b.1.2.3 {:onenter onenter}]
-                          [:c ]]
+                          [:c]]
                          ])
-         (sut/transform [:d>a
+         (sut/transform [:d>a.1.2
                          [:b.1.2.3 {:onenter onenter}]
                          [:c {}]])
          ))))
