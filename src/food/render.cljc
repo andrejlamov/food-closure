@@ -57,7 +57,7 @@
                                               (.filter nodes (fn [n] (.-tagName n))))))
                        (data (clj->js children) (fn [d i]
                                                   (let [[tag {:keys [id]} children] (js->clj d)]
-                                                    (or id i)))))
+                                                    (or id (str tag "_" i))))))
            exited  (.. joined exit)
 
            entered  (.. joined
