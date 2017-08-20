@@ -3,10 +3,14 @@
             [food.macros :refer [d3]]
             [clojure.test :refer :all]))
 
-(deftest parse-tag
-  (is (= [[:div {}] [:a {:enter identity} [:h1]]]
+(deftest head
 
-         (sut/destruct-head :div>a {:enter identity} [:h1])))
+  (is (= [:div {:merge_class "a b c"}] (sut/build-props "div.a.b.c")))
+
+  (is (= [[:div {}] [:a {:enter identity
+                         :merge_class "b c d"} [:h1]]]
+
+         (sut/destruct-head :div>a.b.c.d {:enter identity} [:h1])))
 
   (is (= [:div {} [
                    [:div {} [
@@ -25,17 +29,18 @@
     (is (=
          [:d {} [
                  [:a {} [
-                         [:b {:onenter onenter} []]
+                         [:b {:onenter onenter
+                              :merge_class "1 2 3"} []]
                          [:c {} []]
                          ]
                   ]
                  ]
           ]
          (sut/transform [:d>a
-                         [[:b {:onenter onenter}]
+                         [[:b.1.2.3 {:onenter onenter}]
                           [:c ]]
                          ])
          (sut/transform [:d>a
-                         [:b {:onenter onenter}]
+                         [:b.1.2.3 {:onenter onenter}]
                          [:c {}]])
          ))))
