@@ -11,10 +11,10 @@
   (is (= [:div {} [
                    [:div {} [
                              [:a {} [
-                                     [:i {} [
-                                             [:h1]]]]]]]]]
+                                     [:i {:enter identity} [
+                                                            [:h1]]]]]]]]]
 
-         (sut/nest (sut/destruct-head :div>div>a>i {} [[:h1]]))))
+         (sut/nest (sut/destruct-head :div>div>a>i {:enter identity} [[:h1]]))))
 
   (is (= [:div {:enter identity} []]
          (sut/nest (sut/destruct-head :div {:enter identity} []))))
