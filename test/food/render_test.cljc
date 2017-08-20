@@ -4,8 +4,21 @@
             [clojure.test :refer :all]))
 
 (deftest parse-tag
-  (is (= [:div {} [:div {} [:a {} [:i {}]]]] (sut/nest :div>div>a>i {} [])))
-  (is (= [:div {}] (sut/nest :div {} []))))
+  (is (= [[:div {}] [:a {:enter identity} [:h1]]]
+
+         (sut/destruct-head :div>a {:enter identity} [:h1])))
+
+  (is (= [:div {} [
+                   [:div {} [
+                             [:a {} [
+                                     [:i {} [
+                                             [:h1]]]]]]]]]
+
+         (sut/nest (sut/destruct-head :div>div>a>i {} [[:h1]]))))
+
+  (is (= [:div {:enter identity} []]
+         (sut/nest (sut/destruct-head :div {:enter identity} []))))
+  )
 
 (deftest transform
   (let [onenter (d3 (attr "style" "test"))]
@@ -13,11 +26,16 @@
          [:d {} [
                  [:a {} [
                          [:b {:onenter onenter} []]
-                         [:c {} []]]]]]
-         (sut/transform [:d [:a
-                             [[:b {:onenter onenter}]
-                              [:c]]]])
-         (sut/transform [:d [:a
-                             [:b {:onenter onenter}]
-                             [:c {}]]])
+                         [:c {} []]
+                         ]
+                  ]
+                 ]
+          ]
+         (sut/transform [:d>a
+                         [[:b {:onenter onenter}]
+                          [:c ]]
+                         ])
+         (sut/transform [:d>a
+                         [:b {:onenter onenter}]
+                         [:c {}]])
          ))))

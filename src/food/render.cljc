@@ -9,26 +9,26 @@
 (defn flatten-until-children [children]
   (let [recurse
         (if (= '(()) children)
-                  true
-                  (let [[[head & _] & other] children]
-                    (sequential? head)))
-
-        ]
+          true
+          (let [[[head & _] & other] children]
+            (sequential? head)))]
     (if recurse
       (flatten-until-children (first children))
       children)))
 
-(defn parse-tag [head]
-  (map (fn [e] [(keyword e) {}]) (string/split (name head) #"\>")))
+(defn destruct-head [head props children]
+  (let [[tag & tags] (reverse (string/split (name head) #"\>"))
+        tags'        (map (fn [e] [(keyword e) {}]) tags)
+        tag'         [(keyword tag) props children]]
+    (reverse (cons tag' tags'))))
 
-(defn nest [head props children]
-  (let [tags0 (parse-tag head)]
-    (loop [tags (into [] (reverse
-                          tags0))]
-      (match tags
-             [child [parent props] & other] (recur
-                                       (into [] (concat [[parent props child]] other)))
-             [it] it))))
+(defn nest [tags]
+  (loop [tags' (into [] (reverse
+                         tags))]
+    (match tags'
+      [child [parent props] & other] (recur
+                                      (into [] (concat [[parent props [child]]] other)))
+      [it] it)))
 
 (defn transform [thing]
   (let [[head props children]
@@ -37,8 +37,8 @@
           [(head :guard keyword?) (children :guard sequential?)]                                [head {} [children]]
           [(head :guard keyword?) (props    :guard map?)         & children]                    [head props children]
           [(head :guard keyword?) & children]                                                   [head {} children])
-        ]
-    [head props (map transform (flatten-until-children children))]))
+        children' (map transform (flatten-until-children children))]
+    (nest (destruct-head head props children'))))
 
 (defn destruct2 [[d a b]]
   (let [[tag & classes] (string/split (str d) #"\.")
