@@ -6,6 +6,7 @@
             [compojure.route :refer [resources]]
             [clojure.tools.namespace.repl :refer [disable-unload!]]
             [food.eval]
+            [food.macros]
             [org.httpkit.server :refer :all]
             [ring.middleware.cljsjs :refer [wrap-cljsjs]]))
 
