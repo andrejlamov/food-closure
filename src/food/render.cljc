@@ -16,7 +16,7 @@
       (flatten-until-children (first children))
       children)))
 
-(defn build-props [tag]
+(defn build-element [tag]
   (let [[t & classes]  (string/split tag #"\.")
         class          (string/join " " classes)]
     (if (empty? class)
@@ -25,8 +25,8 @@
 
 (defn destruct-head [head props children]
   (let [[tag & tags] (reverse (string/split (name head) #"\>"))
-        tags'        (map (fn [t] (build-props t)) tags)
-        [tag' props'] (build-props tag)
+        tags'        (map (fn [t] (build-element t)) tags)
+        [tag' props'] (build-element tag)
         tag''         [tag' (merge props' props) children]]
     (reverse (cons tag'' tags'))))
 

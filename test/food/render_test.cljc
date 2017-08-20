@@ -5,7 +5,7 @@
 
 (deftest head
 
-  (is (= [:div {:merge_class "a b c"}] (sut/build-props "div.a.b.c")))
+  (is (= [:div {:merge_class "a b c"}] (sut/build-element "div.a.b.c")))
 
   (is (= [[:div {}] [:a {:enter identity
                          :merge_class "b c d"} [:h1]]]
