@@ -19,7 +19,7 @@
       children)))
 
 (defn parse-tag [head]
-  (map (fn [e] [(keyword e) {}]) (string/split (subs (str head) 1) #"\>")))
+  (map (fn [e] [(keyword e) {}]) (string/split (name head) #"\>")))
 
 (defn nest [head props children]
   (let [tags0 (parse-tag head)]
