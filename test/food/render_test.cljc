@@ -3,25 +3,21 @@
             [food.macros :refer [d3]]
             [clojure.test :refer :all]))
 
-(deftest tag
-  ;; (is (=
-  ;;      ["div" {:merge "a b c"} []]
-  ;;      (sut/destruct2 [:div.a.b.c])))
-  ;; (is (=
+(deftest parse-tag
+  (is (= [:div {} [:div {} [:a {} [:i {}]]]] (sut/nest :div>div>a>i {} [])))
+  (is (= [:div {}] (sut/nest :div {} []))))
 
-  ;;      ["div" {:merge "c d e"} []]
-  ;;      (sut/destruct2 [:div.a.b.c {:merge "c d e"}])
-  ;;        ))
+(deftest transform
   (let [onenter (d3 (attr "style" "test"))]
     (is (=
-         [:a {} [
-                 [:b {:onenter onenter} []]
-                 [:c {} []]
-                 ]
-          ]
-         (sut/transform [:a
-                         [[:b {:onenter onenter}]
-                          [:c]]])
-         (sut/transform [:a
-                         [:b {:onenter onenter}]
-                         [:c {}]])))))
+         [:d {} [
+                 [:a {} [
+                         [:b {:onenter onenter} []]
+                         [:c {} []]]]]]
+         (sut/transform [:d [:a
+                             [[:b {:onenter onenter}]
+                              [:c]]]])
+         (sut/transform [:d [:a
+                             [:b {:onenter onenter}]
+                             [:c {}]]])
+         ))))

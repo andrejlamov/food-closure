@@ -7,23 +7,38 @@
       :cljs [cljs.core.match :refer-macros [match]])))
 
 (defn flatten-until-children [children]
-  (let [recurse (if (= '(()) children)
+  (let [recurse
+        (if (= '(()) children)
                   true
                   (let [[[head & _] & other] children]
-                    (sequential? head)))]
+                    (sequential? head)))
+
+        ]
     (if recurse
       (flatten-until-children (first children))
       children)))
 
+(defn parse-tag [head]
+  (map (fn [e] [(keyword e) {}]) (string/split (subs (str head) 1) #"\>")))
+
+(defn nest [head props children]
+  (let [tags0 (parse-tag head)]
+    (loop [tags (into [] (reverse
+                          tags0))]
+      (match tags
+             [child [parent props] & other] (recur
+                                       (into [] (concat [[parent props child]] other)))
+             [it] it))))
+
 (defn transform [thing]
-  (let [[tag props children]
+  (let [[head props children]
         (match thing
-          [(tag :guard keyword?) (props    :guard map?) (children :guard sequential?)] thing
-          [(tag :guard keyword?) (children :guard sequential?)]                        [tag {} children]
-          [(tag :guard keyword?) (props    :guard map?)  & children]                   [tag props children]
-          [(tag :guard keyword?) & children]                                           [tag {} children])
+          [(head :guard keyword?) (props    :guard map?)         (children :guard sequential?)] thing
+          [(head :guard keyword?) (children :guard sequential?)]                                [head {} [children]]
+          [(head :guard keyword?) (props    :guard map?)         & children]                    [head props children]
+          [(head :guard keyword?) & children]                                                   [head {} children])
         ]
-    [tag props (map transform (flatten-until-children children))]))
+    [head props (map transform (flatten-until-children children))]))
 
 (defn destruct2 [[d a b]]
   (let [[tag & classes] (string/split (str d) #"\.")
