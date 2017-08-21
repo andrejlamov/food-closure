@@ -92,7 +92,7 @@
            (each (fn [d i]
                    (this-as this
                             (let [[tag {:keys [merge enter onenter]} children] d
-                           ;; TODO: enter should have prio over merge
+                                  ;; TODO: enter should have prio over merge
                                   draw   (or merge enter identity)
                                   onenter (or onenter identity)
                                   self (->> (.. js/d3 (select this))
