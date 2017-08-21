@@ -49,14 +49,14 @@
 
 (defn get-type [d] (-> d :meta :type))
 
-(defmacro eval-d3 [[a b c]]
+(defmacro d3-command [[a b c]]
   `(list '~a ~b ~c))
 
-(defmacro eval-d3-list
+(defmacro d3-commands
   ([a]
-   `(list (eval-d3 ~a)))
+   `(list (d3-command ~a)))
   ([a & args]
-   `(cons (eval-d3 ~a) (eval-d3-list ~@args))))
+   `(cons (d3-command ~a) (d3-commands ~@args))))
 
 ;; cljs-env and if-cljs from https://github.com/plumatic/schema/blob/master/src/clj/schema/macros.clj#L10-L19
 (defn cljs-env?
@@ -74,4 +74,4 @@
 (defmacro d3 [& expr]
   `(if-cljs
     (fn [p#] (.. p# ~@expr))
-    (eval-d3-list  ~@expr)))
+    (d3-commands ~@expr)))
