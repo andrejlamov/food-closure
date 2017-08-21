@@ -5,46 +5,30 @@
 
 (deftest head
 
-  (is (= ["div" {:merge (d3 (attr "class" "a b c"))}] (sut/build-element "div.a.b.c")))
+  (is (= ["div" {:merge (d3 (attr "class" "a b c"))}]
+         (sut/build-element "div.a.b.c")))
 
-  (is (= [["div" {}] ["a" {:enter identity
+  (is (= [["div" {}] ["a" {:enter (d3 (style "a" "b"))
                            :merge (d3 (attr "class" "b c d"))} []]]
+         (sut/destruct-head :div>a.b.c.d {:enter (d3 (style "a" "b"))} [])))
 
-         (sut/destruct-head :div>a.b.c.d {:enter identity} [])))
-
-  (is (= ["div" {} [
-                    ["div" {} [
-                               ["a" {} [
-                                        ["i" {:enter identity} []
-                                         ]]]]]]]
-
+  (is (= ["div" {} [["div" {} [["a" {} [["i" {:enter identity} []]]]]]]]
          (sut/nest (sut/destruct-head :div>div>a>i {:enter identity} []))))
 
   (is (= ["div" {:enter identity} []]
-         (sut/nest (sut/destruct-head :div {:enter identity} []))))
-  )
+         (sut/nest (sut/destruct-head :div {:enter identity} [])))))
 
 (deftest transform
-  (is (= ["div" {} []] (sut/transform [:div])))
+  (is (= ["div" {:merge (d3 (attr "class" "a b c"))} []]
+         (sut/transform [:div.a.b.c])))
+  (is (=
+       ["d" {} [["a" {:merge (d3 (attr "class" "1 2"))} [["b" {:merge (d3 (attr "class" "1 2 3"))} []]
+                                                         ["c" {} []]]]]]
 
-  (let [onenter (d3 (attr "style" "test"))]
-    (is (=
-         ["d" {} [
-                  ["a" {:merge (d3 (attr "class" "1 2"))} [
-                                                           ["b" {:onenter onenter
-                                                                 :merge (d3 (attr "class" "1 2 3"))} []]
-                                                           ["c" {} []]
-                                                           ]
-                   ]
-                  ]
-          ]
+       (sut/transform [:d>a.1.2
+                       [[:b.1.2.3]
+                        [:c]]])
 
-         (sut/transform [:d>a.1.2
-                         [[:b.1.2.3 {:onenter onenter}]
-                          [:c]]
-                         ])
-
-         (sut/transform [:d>a.1.2
-                         [:b.1.2.3 {:onenter onenter}]
-                         [:c {}]])
-         ))))
+       (sut/transform [:d>a.1.2
+                       [:b.1.2.3]
+                       [:c]]))))
