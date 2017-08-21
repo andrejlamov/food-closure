@@ -3,22 +3,35 @@
             [food.macros :refer [d3]]
             [clojure.test :refer :all]))
 
-(deftest head
+(deftest d3-composition
+  (is (= {:merge (d3 (attr "div" "ui container")
+                     (style "color" "red"))}
+         {:merge (concat (d3 (attr "div" "ui container"))
+                         (d3 (style "color" "red")))}
+
+         (sut/merge-props {:merge (d3 (attr "div" "ui container"))}
+                          {:merge (d3 (style "color" "red"))})))
+
+  (is (= {}
+         (sut/merge-props nil nil))))
+
+(deftest head-test
 
   (is (= ["div" {:merge (d3 (attr "class" "a b c"))}]
          (sut/build-element "div.a.b.c")))
 
-  (is (= [["div" {}] ["a" {:enter (d3 (style "a" "b"))
-                           :merge (d3 (attr "class" "b c d"))} []]]
-         (sut/destruct-head :div>a.b.c.d {:enter (d3 (style "a" "b"))} [])))
+  (is (= [["div" {}] ["a" {:merge (d3 (attr "class" "b c d")
+                                      (style "color" "red"))} []]]
+         (sut/destruct-head :div>a.b.c.d {:merge (d3 (style "color" "red"))} [])))
 
-  (is (= ["div" {} [["div" {} [["a" {} [["i" {:enter identity} []]]]]]]]
-         (sut/nest (sut/destruct-head :div>div>a>i {:enter identity} []))))
+  (is (= ["div" {} [["div" {} [["a" {} [["i" {:merge (d3 (attr "class" "c d")
+                                                         (style "color" "blue"))} []]]]]]]]
+         (sut/nest (sut/destruct-head :div>div>a>i.c.d {:merge (d3 (style "color" "blue"))} []))))
 
   (is (= ["div" {:enter identity} []]
          (sut/nest (sut/destruct-head :div {:enter identity} [])))))
 
-(deftest transform
+(deftest transform-test
   (is (= ["div" {:merge (d3 (attr "class" "a b c"))} []]
          (sut/transform [:div.a.b.c])))
   (is (=
