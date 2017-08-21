@@ -5,10 +5,10 @@
 
 (deftest head
 
-  (is (= ["div" {:merge_class "a b c"}] (sut/build-element "div.a.b.c")))
+  (is (= ["div" {:merge (d3 (attr "class" "a b c"))}] (sut/build-element "div.a.b.c")))
 
   (is (= [["div" {}] ["a" {:enter identity
-                           :merge_class "b c d"} []]]
+                           :merge (d3 (attr "class" "b c d"))} []]]
 
          (sut/destruct-head :div>a.b.c.d {:enter identity} [])))
 
@@ -30,18 +30,20 @@
   (let [onenter (d3 (attr "style" "test"))]
     (is (=
          ["d" {} [
-                  ["a" {:merge_class "1 2"} [
-                                             ["b" {:onenter onenter
-                                                   :merge_class "1 2 3"} []]
-                                             ["c" {} []]
-                         ]
+                  ["a" {:merge (d3 (attr "class" "1 2"))} [
+                                                           ["b" {:onenter onenter
+                                                                 :merge (d3 (attr "class" "1 2 3"))} []]
+                                                           ["c" {} []]
+                                                           ]
+                   ]
                   ]
-                 ]
           ]
+
          (sut/transform [:d>a.1.2
                          [[:b.1.2.3 {:onenter onenter}]
                           [:c]]
                          ])
+
          (sut/transform [:d>a.1.2
                          [:b.1.2.3 {:onenter onenter}]
                          [:c {}]])

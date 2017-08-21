@@ -49,6 +49,28 @@
 
 (defn get-type [d] (-> d :meta :type))
 
+(defmacro eval-d3 [[a b c]]
+  `(list '~a ~b ~c))
+
+(defmacro eval-d3-list
+  ([a]
+   `(list (eval-d3 ~a)))
+  ([a & args]
+   `(cons (eval-d3 ~a) (eval-d3-list ~@args))))
+
+(defn cljs-env?
+  "Take the &env from a macro, and tell whether we are expanding into cljs."
+  [env]
+  (boolean (:ns env)))
+
+(defmacro if-cljs
+  "Return then if we are generating cljs code and else for Clojure code.
+
+https://groups.google.com/d/msg/clojurescript/iBY5HaQda4A/w1lAQi9_AwsJ"
+  [then else]
+  (if (cljs-env? &env) then else))
+
 (defmacro d3 [& expr]
-  `(fn [p#] (.. p# ~@expr))
-  )
+  `(if-cljs
+    (fn [p#] (.. p# ~@expr))
+    (eval-d3-list  ~@expr)))

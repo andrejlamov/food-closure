@@ -21,7 +21,7 @@
         class          (string/join " " classes)]
     (if (empty? class)
       [t {}]
-      [t {:merge_class class}])))
+      [t {:merge (d3 (attr "class" class))}])))
 
 (defn destruct-head [head props children]
   (let [[tag & tags] (reverse (string/split (name head) #"\>"))
