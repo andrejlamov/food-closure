@@ -36,9 +36,10 @@
 
 (defn root []
   [:div.ui.container>div.ui.segment {:merge (d3 (style "background-color" "red"))}
-   [:h3 {:merge (d3
-                 (style "color" "blue")
-                 (text "hello"))}]])
+   (for [s ["hello" "world"]]
+     [:h2 {:merge (d3
+                   (style "color" "blue")
+                   (text s))}])])
 
 (defn main []
   (println "client main")
