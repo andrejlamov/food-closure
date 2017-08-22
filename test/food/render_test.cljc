@@ -51,9 +51,11 @@
        ["div" {} [["a" {:merge (d3 (attr "class" "1 2")
                                    (style "color" "red"))}
                    [["h" {:merge (d3 (attr "class" "1 2 3")
-                                     (style "color" "green"))} []]]]]]
+                                     (style "color" "green")
+                                     (text "hello"))} []]]]]]
        (sut/transform [:div>a.1.2
                        {:merge (d3 (style "color" "red"))}
                        [:h.1.2.3
-                        {:merge (d3 (style "color" "green"))}]]))))
+                        {:merge (d3 (style "color" "green")
+                                    (text "hello"))}]]))))
 

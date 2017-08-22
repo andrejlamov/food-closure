@@ -17,10 +17,8 @@
        (prn-str)
        (.send ws)))
 
-
 (def client-state (atom (merge {}
-                               (sidebar/initial-state :sidebar)
-                               )))
+                               (sidebar/initial-state :sidebar))))
 
 (defonce server-state (atom []))
 
@@ -37,10 +35,10 @@
   (get-in @client-state [:candidate-list] []))
 
 (defn root []
-   [:div.ui.container {:merge (d3 (style "color" "red"))}
-     [:h3.ui {:merge (d3 (text "hello"))}]
-    ]
-   )
+  [:div.ui.container>div.ui.segment {:merge (d3 (style "background-color" "red"))}
+   [:h3 {:merge (d3
+                 (style "color" "blue")
+                 (text "hello"))}]])
 
 (defn main []
   (println "client main")
@@ -51,9 +49,7 @@
   ;;     (sidebar (clj->js
   ;;               {:context (js/$ "#app .ui.bottom.segment")}))
   ;;     (sidebar "setting" "transition" "overlay"))
-
-  )
-
+)
 
 ;; (add-watch
 ;;  server-state :watcher
@@ -75,9 +71,7 @@
 ;;    ))
 (defn evaluate [data]
   (doall (for [[path value] data]
-           (swap! client-state assoc-in path value)
-           )))
-
+           (swap! client-state assoc-in path value))))
 
 (set! (.-onopen ws) (fn []
                       (send {:operation :Subscribe :client-state nil})
@@ -85,8 +79,7 @@
 
 (defn log [a]
   (println a)
-  a
-  )
+  a)
 
 (set! (.-onmessage ws) (fn [server-state]
                          (->> (.-data server-state)
