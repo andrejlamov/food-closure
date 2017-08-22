@@ -25,9 +25,9 @@
 
 (defn merge-whatever [a b]
   (match [a b]
-         [(a :guard fn?)   (b :guard fn?)]   (comp a b)
-         [(a :guard coll?) (b :guard coll?)] (concat a b)
-         [& _] nil))
+    [(a :guard fn?)   (b :guard fn?)]   (comp a b)
+    [(a :guard coll?) (b :guard coll?)] (concat a b)
+    [& _] nil))
 
 (defn merge-props [props-a props-b]
   (let [a (:merge props-a)
@@ -62,16 +62,15 @@
         children' (map transform (flatten-until-children children))]
     (nest (destruct-head head props children'))))
 
-
 (defn render0 [parent children]
   #?(:clj [parent children]
      :cljs
      (let [joined  (.. parent
                        (selectAll #(this-as this
-                                     (let [nodes (js/Array.from (aget this "childNodes"))]
-                                       (.filter nodes (fn [n] (.-tagName n))))))
+                                            (let [nodes (js/Array.from (aget this "childNodes"))]
+                                              (.filter nodes (fn [n] (.-tagName n))))))
                        (data (clj->js children) (fn [d i]
-                                                  (let [[tag {:keys [id]} children] (js->clj d)]
+                                                  (let [[tag {:keys [id]} children] (js->clj d :keywordize-keys true)]
                                                     (or id (str tag "_" i))))))
            exited  (.. joined exit)
 
@@ -85,25 +84,27 @@
        (.. exited
            (each (fn [d]
                    (this-as this
-                     (let [self                          (.. js/d3 (select this))
-                           [tag {:keys [exit]} children] d]
-                       (.. self exit))))))
+                            (let [[tag {:keys [exit]} children] (js->clj d :keywordize-keys true)
+                                  self                          (.. js/d3 (select this))]
+                              (if exit
+                                (.. self exit)
+                                (.. self remove)))))))
        (.. entered
            (each (fn [d i]
                    (this-as this
-                     (let [[tag  {:keys [enter merge]} children] (js->clj d :keywordize-keys true)
-                           enter (or enter merge identity)
-                           self  (.. js/d3 (select this))]
-                       (enter self)
-                       (render0 self children))))))
+                            (let [[tag  {:keys [enter merge]} children] (js->clj d :keywordize-keys true)
+                                  enter (or enter merge identity)
+                                  self  (.. js/d3 (select this))]
+                              (enter self)
+                              (render0 self children))))))
        (.. joined
            (each (fn [d]
                    (let [[tag {:keys [merge]} children] (js->clj d :keywordize-keys true)
                          draw  (or merge identity)]
                      (this-as this
-                       (->> (.. js/d3 (select this))
-                            (draw)
-                            (#(render0 %1 children)))))))))))
+                              (->> (.. js/d3 (select this))
+                                   (draw)
+                                   (#(render0 %1 children)))))))))))
 
 (defn render [parent children]
   (render0 parent [(transform children)]))

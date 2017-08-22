@@ -8,10 +8,11 @@
 (enable-console-print!)
 
 (defn root []
-  [:div.ui.container>div.ui.segment {:merge (d3 (style "background-color" "red"))}
-   (for [s ["hello" "world"]]
+  [:div.ui.container {:merge (d3 (style "background-color" "red"))}
+   (for [s ["hello" "world" "again"]]
      [:div.ui.vertical.segment
-      {:enter (d3 (style "opacity" 0)
+      {:id s
+       :enter (d3 (style "opacity" 0)
                   (transition)
                   (duration 5000)
                   (style "opacity" 1)
