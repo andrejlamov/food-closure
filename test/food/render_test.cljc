@@ -12,7 +12,7 @@
          (sut/merge-props {:merge (d3 (attr "div" "ui container"))}
                           {:merge (d3 (style "color" "red"))})))
 
-  (is (= {:merge nil}
+  (is (= {}
          (sut/merge-props nil nil))))
 
 (deftest head-test
@@ -28,7 +28,7 @@
                                                          (style "color" "blue"))} []]]]]]]]
          (sut/nest (sut/destruct-head :div>div>a>i.c.d {:merge (d3 (style "color" "blue"))} []))))
 
-  (is (= ["div" {:enter identity :merge identity} []]
+  (is (= ["div" {:enter identity} []]
          (sut/nest (sut/destruct-head :div {:enter identity} [])))))
 
 (deftest transform-test

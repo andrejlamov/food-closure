@@ -33,7 +33,9 @@
   (let [a (:merge props-a)
         b (:merge props-b)
         merged (merge-whatever a b)]
-      (merge {} props-a props-b {:merge merged})))
+    (if (nil? merged)
+      (merge {} props-a props-b)
+      (merge {} props-a props-b {:merge merged}))))
 
 (defn destruct-head [head props children]
   (let [[tag & tags] (reverse (string/split (name head) #"\>"))
