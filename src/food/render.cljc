@@ -25,7 +25,7 @@
 
 (defn merge-whatever [a b]
   (match [a b]
-         [(a :guard fn?)   (b :guard fn?)]   (comp (or a identity) (or b identity))
+         [(a :guard fn?)   (b :guard fn?)]   (comp a b)
          [(a :guard coll?) (b :guard coll?)] (filter (comp not nil?) (concat a b))
          [& _] nil))
 
