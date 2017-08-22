@@ -21,21 +21,21 @@
         class          (string/join " " classes)]
     (if (empty? class)
       [t {}]
-      [t {:merge (d3 (attr "class" class))}])))
+      [t {:join (d3 (attr "class" class))}])))
 
 (defn merge-whatever [a b]
   (match [a b]
-    [(a :guard fn?)   (b :guard fn?)]   (comp a b)
+    [(a :guard fn?)   (b :guard fn?)]   (comp b a)
     [(a :guard coll?) (b :guard coll?)] (concat a b)
     [& _] nil))
 
 (defn merge-props [props-a props-b]
-  (let [a (:merge props-a)
-        b (:merge props-b)
-        merged (merge-whatever a b)]
-    (if (nil? merged)
+  (let [a (:join props-a)
+        b (:join props-b)
+        joind (merge-whatever a b)]
+    (if (nil? joind)
       (merge {} props-a props-b)
-      (merge {} props-a props-b {:merge merged}))))
+      (merge {} props-a props-b {:join joind}))))
 
 (defn destruct-head [head props children]
   (let [[tag & tags] (reverse (string/split (name head) #"\>"))
@@ -92,19 +92,21 @@
        (.. entered
            (each (fn [d i]
                    (this-as this
-                            (let [[tag  {:keys [enter merge]} children] (js->clj d :keywordize-keys true)
-                                  enter (or enter merge identity)
+                            (let [[tag  {:keys [enter join]} children] (js->clj d :keywordize-keys true)
+                                  enter (or enter join identity)
                                   self  (.. js/d3 (select this))]
                               (enter self)
                               (render0 self children))))))
        (.. joined
            (each (fn [d]
-                   (let [[tag {:keys [merge]} children] (js->clj d :keywordize-keys true)
-                         draw  (or merge identity)]
+                   (let [[tag {:keys [join click]} children] (js->clj d :keywordize-keys true)
+                         draw  (or join identity)]
+                     (println tag)
                      (this-as this
-                              (->> (.. js/d3 (select this))
-                                   (draw)
-                                   (#(render0 %1 children)))))))))))
+                       (->> (.. js/d3 (select this)
+                                (on "click" click))
+                            (draw)
+                            (#(render0 %1 children)))))))))))
 
 (defn render [parent children]
   (render0 parent [(transform children)]))
