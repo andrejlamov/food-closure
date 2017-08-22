@@ -62,7 +62,8 @@
 
 (set! (.-onopen ws) (fn []
                       (send {:operation :Subscribe :client-state nil})
-                      (main)))
+                      ;; (main)
+                      ))
 
 (defn log [a]
   (println a)

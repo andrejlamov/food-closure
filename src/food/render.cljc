@@ -62,13 +62,14 @@
         children' (map transform (flatten-until-children children))]
     (nest (destruct-head head props children'))))
 
-(defn render [parent children]
+
+(defn render0 [parent children]
   #?(:clj [parent children]
      :cljs
      (let [joined  (.. parent
                        (selectAll #(this-as this
-                                            (let [nodes (js/Array.from (aget this "childNodes"))]
-                                              (.filter nodes (fn [n] (.-tagName n))))))
+                                     (let [nodes (js/Array.from (aget this "childNodes"))]
+                                       (.filter nodes (fn [n] (.-tagName n))))))
                        (data (clj->js children) (fn [d i]
                                                   (let [[tag {:keys [id]} children] (js->clj d)]
                                                     (or id (str tag "_" i))))))
@@ -84,9 +85,9 @@
        (.. exited
            (each (fn [d]
                    (this-as this
-                            (let [self                          (.. js/d3 (select this))
-                                  [tag {:keys [exit]} children] d]
-                              (.. self exit))))))
+                     (let [self                          (.. js/d3 (select this))
+                           [tag {:keys [exit]} children] d]
+                       (.. self exit))))))
        (.. entered
            (each (fn [d i]
                    (this-as this
@@ -94,12 +95,15 @@
                            enter (or enter merge identity)
                            self  (.. js/d3 (select this))]
                        (enter self)
-                       (render self children))))))
+                       (render0 self children))))))
        (.. joined
            (each (fn [d]
                    (let [[tag {:keys [merge]} children] (js->clj d :keywordize-keys true)
                          draw  (or merge identity)]
                      (this-as this
-                              (->> (.. js/d3 (select this))
-                                   (draw)
-                                   (#(render %1 children)))))))))))
+                       (->> (.. js/d3 (select this))
+                            (draw)
+                            (#(render0 %1 children)))))))))))
+
+(defn render [parent children]
+  (render0 parent [(transform children)]))

@@ -22,5 +22,7 @@
 
 (defn main []
   (println "client main")
-  (render (.. js/d3 (select "#app"))
-          [(transform (root))]))
+  (render
+   (.. js/d3 (select "#app"))
+   (root)))
+
