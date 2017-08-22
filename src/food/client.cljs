@@ -5,8 +5,8 @@
             [food.components.sidebar :as sidebar]
             [food.components.topbar :as topbar]
             [food.types :as t]
-            [food.render :refer [render transform]]
-            [food.macros :as m :refer [d3]]))
+            [food.render :as r :refer [render transform]]
+            [food.macros :as m :refer [d3 d3-commands]]))
 
 (enable-console-print!)
 
@@ -38,8 +38,21 @@
 
 (defn root []
   [
-   [:div.ui.container]
+   [:div.ui.container {:merge (d3 (style "color" "red"))}]
    ])
+
+(defn main []
+  (println "client main")
+  (println (map transform (root)))
+  (render (.. js/d3 (select "#app"))
+          (map transform (root)))
+  ;; (.. (js/$ ".sidebar")
+  ;;     (sidebar (clj->js
+  ;;               {:context (js/$ "#app .ui.bottom.segment")}))
+  ;;     (sidebar "setting" "transition" "overlay"))
+
+  )
+
 
 ;; (add-watch
 ;;  server-state :watcher
@@ -59,23 +72,11 @@
 ;;            (root server-state atom))
 
 ;;    ))
-
 (defn evaluate [data]
   (doall (for [[path value] data]
            (swap! client-state assoc-in path value)
            )))
 
-(defn main []
-  (println "client main")
-  (println (map transform (root)))
-  (render (.. js/d3 (select "#app"))
-          (map transform (root)))
-  ;; (.. (js/$ ".sidebar")
-  ;;     (sidebar (clj->js
-  ;;               {:context (js/$ "#app .ui.bottom.segment")}))
-  ;;     (sidebar "setting" "transition" "overlay"))
-
-  )
 
 (set! (.-onopen ws) (fn []
                       (send {:operation :Subscribe :client-state nil})

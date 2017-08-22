@@ -23,14 +23,17 @@
       [t {}]
       [t {:merge (d3 (attr "class" class))}])))
 
-(defn merge-props [a b]
-  (let [props-a (:merge a)
-        props-b (:merge b)
-        merged (concat props-a props-b)
-        filtered (filter (comp not nil?) merged)]
-    (if (empty? filtered)
-      (merge {} a b)
-      (merge a b {:merge merged}))))
+(defn merge-whatever [a b]
+  (match [a b]
+         [(a :guard fn?)   (b :guard fn?)]   (comp (or a identity) (or b identity))
+         [(a :guard coll?) (b :guard coll?)] (filter (comp not nil?) (concat a b))
+         [& _] nil))
+
+(defn merge-props [props-a props-b]
+  (let [a (:merge props-a)
+        b (:merge props-b)
+        merged (merge-whatever a b)]
+      (merge {} props-a props-b {:merge merged})))
 
 (defn destruct-head [head props children]
   (let [[tag & tags] (reverse (string/split (name head) #"\>"))
@@ -91,17 +94,17 @@
        (.. entered
            (each (fn [d i]
                    (this-as this
-                            (let [[tag {:keys [merge enter onenter]} children] d
-                                  ;; TODO: enter should have prio over merge
-                                  draw   (or merge enter identity)
-                                  onenter (or onenter identity)
-                                  self (->> (.. js/d3 (select this))
-                                            draw
-                                            onenter)]
-                              (render self children))))))
+                     (let [[tag {:keys [merge enter onenter]} children] (js->clj d :keywordize-keys true)
+                           ;; TODO: enter should have prio over merge
+                           draw   (or merge enter identity)
+                           onenter (or onenter identity)
+                           self (->> (.. js/d3 (select this))
+                                     draw
+                                     onenter)]
+                       (render self children))))))
        (.. joined
            (each (fn [d]
-                   (let [[tag {:keys [merge]} children] d
+                   (let [[tag {:keys [merge]} children] (js->clj d :keywordize-keys true)
                          draw  (or merge identity)]
                      (this-as this
                               (->> (.. js/d3 (select this))
