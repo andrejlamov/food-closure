@@ -47,8 +47,13 @@
                        [:b.1.2.3]
                        [:c]])))
 
-  (is (sut/transform [:d>a.1.2
-                      {:merge (d3 (style "color" "red"))}
-                      [:b.1.2.3
-                       {:merge (d3 (style "color" "green"))}]])))
+  (is (=
+       ["div" {} [["a" {:merge (d3 (attr "class" "1 2")
+                                   (style "color" "red"))}
+                   [["h" {:merge (d3 (attr "class" "1 2 3")
+                                     (style "color" "green"))} []]]]]]
+       (sut/transform [:div>a.1.2
+                       {:merge (d3 (style "color" "red"))}
+                       [:h.1.2.3
+                        {:merge (d3 (style "color" "green"))}]]))))
 

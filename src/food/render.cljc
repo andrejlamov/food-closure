@@ -55,7 +55,7 @@
 (defn transform [thing]
   (let [[head props children]
         (match thing
-          [(head :guard keyword?) (props    :guard map?)         (children :guard sequential?)] thing
+          [(head :guard keyword?) (props    :guard map?)         (children :guard sequential?)] [head props [children]]
           [(head :guard keyword?) (children :guard sequential?)]                                [head {} [children]]
           [(head :guard keyword?) (props    :guard map?)         & children]                    [head props (or children [])]
           [(head :guard keyword?) & children]                                                   [head {} children])
