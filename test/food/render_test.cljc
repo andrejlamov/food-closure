@@ -35,8 +35,9 @@
   (is (= ["div" {:merge (d3 (attr "class" "a b c"))} []]
          (sut/transform [:div.a.b.c])))
   (is (=
-       ["d" {} [["a" {:merge (d3 (attr "class" "1 2"))} [["b" {:merge (d3 (attr "class" "1 2 3"))} []]
-                                                         ["c" {} []]]]]]
+       ["d" {} [["a" {:merge (d3 (attr "class" "1 2"))}
+                 [["b" {:merge (d3 (attr "class" "1 2 3"))} []]
+                  ["c" {} []]]]]]
 
        (sut/transform [:d>a.1.2
                        [[:b.1.2.3]
