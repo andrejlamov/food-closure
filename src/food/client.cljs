@@ -37,15 +37,16 @@
   (get-in @client-state [:candidate-list] []))
 
 (defn root []
-  [
-   [:div.ui.container {:merge (d3 (style "color" "red"))}]
-   ])
+   [:div.ui.container {:merge (d3 (style "color" "red"))}
+     [:h3.ui {:merge (d3 (text "hello"))}]
+    ]
+   )
 
 (defn main []
   (println "client main")
-  (println (map transform (root)))
+  ;; (println (map transform (root)))
   (render (.. js/d3 (select "#app"))
-          (map transform (root)))
+          [(transform (root))])
   ;; (.. (js/$ ".sidebar")
   ;;     (sidebar (clj->js
   ;;               {:context (js/$ "#app .ui.bottom.segment")}))

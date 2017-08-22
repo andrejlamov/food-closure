@@ -45,4 +45,10 @@
 
        (sut/transform [:d>a.1.2
                        [:b.1.2.3]
-                       [:c]]))))
+                       [:c]])))
+
+  (is (sut/transform [:d>a.1.2
+                      {:merge (d3 (style "color" "red"))}
+                      [:b.1.2.3
+                       {:merge (d3 (style "color" "green"))}]])))
+
