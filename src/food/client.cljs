@@ -37,9 +37,15 @@
 (defn root []
   [:div.ui.container>div.ui.segment {:merge (d3 (style "background-color" "red"))}
    (for [s ["hello" "world"]]
-     [:h2 {:merge (d3
-                   (style "color" "blue")
-                   (text s))}])])
+     [:div.ui.vertical.segment
+      {:enter (d3 (style "opacity" 0)
+                  (transition)
+                  (duration 5000)
+                  (style "opacity" 1)
+                  (attr "class" "ui vertical segment"))}
+      [:h2
+       {:merge (d3 (style "color" "blue")
+                   (text s))}]])])
 
 (defn main []
   (println "client main")
@@ -87,4 +93,3 @@
                               (cljs.reader/read-string)
                               :msg
                               (evaluate))))
-

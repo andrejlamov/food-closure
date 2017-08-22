@@ -84,25 +84,16 @@
        (.. exited
            (each (fn [d]
                    (this-as this
-                            (let [self                            (.. js/d3 (select this))
-                                  [tag {:keys [onexit]} children] d
-                                  onexit                          (or onexit (d3 remove))]
-                              (.. (onexit self)
-                                  (on "end" (fn []
-                                              (this-as this
-                                                       (.. js/d3
-                                                           (select this)
-                                                           (remove)))))))))))
+                            (let [self                          (.. js/d3 (select this))
+                                  [tag {:keys [exit]} children] d]
+                              (.. self exit))))))
        (.. entered
            (each (fn [d i]
                    (this-as this
-                     (let [[tag {:keys [merge enter onenter]} children] (js->clj d :keywordize-keys true)
-                           ;; TODO: enter should have prio over merge
-                           draw   (or merge enter identity)
-                           onenter (or onenter identity)
-                           self (->> (.. js/d3 (select this))
-                                     draw
-                                     onenter)]
+                     (let [[tag  {:keys [enter merge]} children] (js->clj d :keywordize-keys true)
+                           enter (or enter merge identity)
+                           self  (.. js/d3 (select this))]
+                       (enter self)
                        (render self children))))))
        (.. joined
            (each (fn [d]
@@ -112,4 +103,3 @@
                               (->> (.. js/d3 (select this))
                                    (draw)
                                    (#(render %1 children)))))))))))
-
