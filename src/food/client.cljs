@@ -6,7 +6,7 @@
             [food.components.topbar :as topbar]
             [food.types :as t]
             [food.render :as r :refer [render transform]]
-            [food.macros :as m :refer [d3 d3-commands]]))
+            [food.macros :refer [d3]]))
 
 (enable-console-print!)
 
