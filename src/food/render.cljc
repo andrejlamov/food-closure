@@ -26,7 +26,7 @@
 (defn merge-whatever [a b]
   (match [a b]
          [(a :guard fn?)   (b :guard fn?)]   (comp a b)
-         [(a :guard coll?) (b :guard coll?)] (filter (comp not nil?) (concat a b))
+         [(a :guard coll?) (b :guard coll?)] (concat a b)
          [& _] nil))
 
 (defn merge-props [props-a props-b]
