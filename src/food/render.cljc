@@ -92,9 +92,9 @@
        (.. entered
            (each (fn [d i]
                    (this-as this
-                            (let [[tag  {:keys [enter join]} children] (js->clj d :keywordize-keys true)
+                            (let [[tag  {:keys [enter join click]} children] (js->clj d :keywordize-keys true)
                                   enter (or enter join identity)
-                                  self  (.. js/d3 (select this))]
+                                  self  (.. js/d3 (select this) (on "click" click))]
                               (enter self)
                               (render0 self children))))))
        (.. joined
@@ -103,10 +103,10 @@
                          draw  (or join identity)]
                      (println tag)
                      (this-as this
-                       (->> (.. js/d3 (select this)
-                                (on "click" click))
-                            (draw)
-                            (#(render0 %1 children)))))))))))
+                              (->> (.. js/d3 (select this)
+                                       (on "click" click))
+                                   (draw)
+                                   (#(render0 %1 children)))))))))))
 
 (defn render [parent children]
   (render0 parent [(transform children)]))
