@@ -71,7 +71,7 @@
                                               (.filter nodes (fn [n] (.-tagName n))))))
                        (data (clj->js children) (fn [d i]
                                                   (let [[tag {:keys [id]} children] (js->clj d :keywordize-keys true)]
-                                                    (or id (str tag "_" i))))))
+                                                    (str id "_" tag "_" i )))))
            exited  (.. joined exit)
 
            entered  (.. joined
