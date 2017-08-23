@@ -25,14 +25,14 @@
 
 (defn merge-whatever [a b]
   (match [a b]
-    [(a :guard fn?)   (b :guard fn?)]   (comp b a)
+    [(a :guard fn?)   (b :guard fn?)]   (comp b a )
     [(a :guard coll?) (b :guard coll?)] (concat a b)
     [& _] nil))
 
 (defn merge-props [props-a props-b]
   (let [a (:join props-a)
         b (:join props-b)
-        joind (merge-whatever a b)]
+        joind (merge-whatever a b )]
     (if (nil? joind)
       (merge {} props-a props-b)
       (merge {} props-a props-b {:join joind}))))
@@ -93,7 +93,7 @@
            (each (fn [d i]
                    (this-as this
                             (let [[tag  {:keys [enter join click]} children] (js->clj d :keywordize-keys true)
-                                  enter (or enter join identity)
+                                  enter (comp (or join identity) (or enter identity))
                                   self  (.. js/d3 (select this) (on "click" click))]
                               (enter self)
                               (render0 self children))))))
