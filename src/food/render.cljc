@@ -101,7 +101,6 @@
            (each (fn [d]
                    (let [[tag {:keys [join click]} children] (js->clj d :keywordize-keys true)
                          draw  (or join identity)]
-                     (println tag)
                      (this-as this
                               (->> (.. js/d3 (select this)
                                        (on "click" click))
