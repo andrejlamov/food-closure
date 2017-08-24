@@ -93,7 +93,7 @@
            (each (fn [d i]
                    (this-as this
                             (let [[tag  {:keys [enter join click]} children] (js->clj d :keywordize-keys true)
-                                  enter (comp (or join identity) (or enter identity))
+                                  enter (comp (or enter identity) (or join identity))
                                   self  (.. js/d3 (select this) (on "click" click))]
                               (enter self)
                               (render0 self children))))))

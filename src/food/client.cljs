@@ -10,13 +10,13 @@
 
 (enable-console-print!)
 
-(def state (atom {:top-items []
+(def state (atom {:top-items #{}
 
-                  :list-items ["chrome"
-                               "firefox"
-                               "safari"
-                               "edge"
-                               "opera"]}))
+                  :list-items #{"chrome"
+                                "firefox"
+                                "safari"
+                                "edge"
+                                "opera"}}))
 
 (defn pos [e]
   (let [o (.. (js/$ e) offset)]
@@ -25,6 +25,21 @@
 (def input-chan (chan))
 (def our-pub (pub input-chan :topic))
 
+
+(def render-lock (atom 0))
+
+(let [output-chan (chan)]
+  (sub our-pub "end" output-chan)
+  (go-loop [] (<! output-chan)
+           (println "got an end")
+           (recur)))
+
+(let [output-chan (chan)]
+  (sub our-pub "start" output-chan)
+  (go-loop [] (<! output-chan)
+           (println "got a start")
+           (recur)))
+
 (defn root []
   [:div.ui.container
    [:div.ui.top.attached.menu {:join (d3 (style "height" "6em"))}
@@ -32,6 +47,7 @@
       [:div.ui.icon.item
        {:id n
         :enter (d3 (each (fn []
+                           (put! input-chan {:topic "start"})
                            (println "enter" n)
                            (this-as this
                                     (let [output-chan (chan)
@@ -43,7 +59,9 @@
                                           (style "padding-right" 0)
                                           (style "width" 0))
                                       (sub our-pub (str "start/topbar-icon-slot/" n) output-chan)
+                                      (println "wait on topbar slot block" n)
                                       (go-loop [] (<! output-chan)
+                                               (println "wait on topbar slot got")
                                                (.. js/d3 (select this)
                                                    transition
                                                    (duration 2000)
@@ -58,25 +76,31 @@
                                                                                 node))]
                                                                  (put! input-chan
                                                                        {:topic (str "end/topbar-icon-slot/" n)
-                                                                        :position p})))))))))))}
+                                                                        :position p})
+
+                                                                 (put! input-chan {:topic "end"})
+                                                                 ))))
+                                               (recur)
+                                               ))))))}
        [:i.huge.icon {:id n
-                      :join (d3 (classed n true))
+                      :join (d3 (classed n true)
+                                )
                       :enter (d3 (each (fn [] (this-as this
-                                                       (let [output-chan (chan)
-                                                             self (.. js/d3 (select this))]
-                                                         (.. self
-                                                             (style "opacity" 0))
-                                                         (sub our-pub (str "display/topbar-icon/" n) output-chan)
-                                                         (go-loop [] (<! output-chan)
-                                                                  (.. js/d3 (select this)
-                                                                      (style "opacity" 1))))))))}]])]
+                                               (let [output-chan (chan)]
+                                                 (.. js/d3 (select this) 
+                                                         (style "opacity" 0))
+                                                 (sub our-pub (str "display/topbar-icon/" n) output-chan)
+                                                 (go-loop [] (<! output-chan)
+                                                          (js/console.log this)
+                                                          (.. js/d3 (select this)
+                                                              (style "opacity" 1))
+                                                          (recur)))))))}]])]
 
    [:div.ui.bottom.attached.segment
     (for [n (:list-items @state)]
       [:div.ui.vertical.segment
        {:id n
         :click (fn [d]
-
                  (println "click" n)
                  (swap! state update-in [:list-items] (partial remove #{n}))
                  (swap! state update-in [:top-items] conj n)
@@ -90,7 +114,8 @@
                    (style "opacity" 1)
                    (attr "class" "ui vertical segment"))
         :exit  (d3 (each (fn [] (this-as this
-                                         (println "exit" n)
+                                         (put! input-chan {:topic "start"})
+                                         (println "send to topbar" n)
                                          (put! input-chan {:topic (str "start/topbar-icon-slot/" n)})
                                          (let [output-chan (chan)]
                                            (sub our-pub (str "end/topbar-icon-slot/" n) output-chan)
@@ -98,6 +123,7 @@
                                              (let [{:keys [position]} (<! output-chan)
                                                    [t1 l1] position
                                                    [t0 l0] (pos (.. js/d3 (select this) (select "i") node))]
+
                                                (.. js/d3 (select this)
                                                    (select "i")
                                                    (transition)
@@ -107,7 +133,10 @@
                                                                (println "will remove" n)
                                                                (put! input-chan {:topic (str "display/topbar-icon/" n)})
                                                                (.. js/d3 (select this)
-                                                                   remove)))))))))))}
+                                                                   remove)
+                                                               (put! input-chan {:topic "end"})
+                                                               ))))
+                                             (recur)))))))}
        [:div.ui.icon.item>i.huge.icon
         {:join (d3
                 (classed n true))}]])]])
