@@ -3,7 +3,7 @@
             [cljsjs.d3]
             [cljsjs.jquery]
             [cljs.core.async :as async
-             :refer [unsub sub pub <! >! chan close! sliding-buffer put! alts!]]
+             :refer [ <! >! chan close! sliding-buffer put! alts!]]
             [food.render :as r :refer [render transform]]
             [food.macros :refer [d3]])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
@@ -23,22 +23,13 @@
     [(.-top o) (.-left o)]))
 
 (def input-chan (chan))
-(def our-pub (pub input-chan :topic))
+(def our-pub (async/pub input-chan :topic))
 
+(defn sub [topic output-chan]
+  (async/sub our-pub topic output-chan))
 
-(def render-lock (atom 0))
-
-(let [output-chan (chan)]
-  (sub our-pub "end" output-chan)
-  (go-loop [] (<! output-chan)
-           (println "got an end")
-           (recur)))
-
-(let [output-chan (chan)]
-  (sub our-pub "start" output-chan)
-  (go-loop [] (<! output-chan)
-           (println "got a start")
-           (recur)))
+(defn pub [msg]
+  (put! input-chan msg))
 
 (defn root []
   [:div.ui.container
@@ -47,49 +38,36 @@
       [:div.ui.icon.item
        {:id n
         :enter (d3 (each (fn []
-                           (put! input-chan {:topic "start"})
                            (println "enter" n)
                            (this-as this
-                                    (let [output-chan (chan)
-                                          self (.. js/d3 (select this))
-                                          lp   (.. self (style "padding-left"))
-                                          rp   (.. self (style "padding-right"))]
-                                      (.. self
-                                          (style "padding-left" 0)
-                                          (style "padding-right" 0)
-                                          (style "width" 0))
-                                      (sub our-pub (str "start/topbar-icon-slot/" n) output-chan)
-                                      (println "wait on topbar slot block" n)
-                                      (go-loop [] (<! output-chan)
-                                               (println "wait on topbar slot got")
-                                               (.. js/d3 (select this)
-                                                   transition
-                                                   (duration 2000)
-                                                   (style "width" "6em")
-                                                   (style "padding-left" lp)
-                                                   (style "padding-right" rp)
-                                                   (on "end" (fn []
-                                                               (println "will send end slot" n)
-                                                               (let [p (pos (.. js/d3
-                                                                                (select this)
-                                                                                (select "i")
-                                                                                node))]
-                                                                 (put! input-chan
-                                                                       {:topic (str "end/topbar-icon-slot/" n)
-                                                                        :position p})
+                             (let [output-chan (chan)
+                                   self (.. js/d3 (select this))
+                                   lp   (.. self (style "padding-left"))
+                                   rp   (.. self (style "padding-right"))]
+                               (.. self
+                                   (style "padding-left" 0)
+                                   (style "padding-right" 0)
+                                   (style "width" 0)
+                                   transition
+                                   (duration 2000)
+                                   (style "width" "6em")
+                                   (style "padding-left" lp)
+                                   (style "padding-right" rp)
+                                   (on "end" #(let [p (pos(.. self (select "i") node))]
+                                                (pub {:topic (str "end/topbar-icon-slot/" n)
+                                                      :position p})))))))))
 
-                                                                 (put! input-chan {:topic "end"})
-                                                                 ))))
-                                               (recur)
-                                               ))))))}
+
+                   }
        [:i.huge.icon {:id n
                       :join (d3 (classed n true)
                                 )
                       :enter (d3 (each (fn [] (this-as this
                                                (let [output-chan (chan)]
-                                                 (.. js/d3 (select this) 
-                                                         (style "opacity" 0))
-                                                 (sub our-pub (str "display/topbar-icon/" n) output-chan)
+                                                 (.. js/d3
+                                                     (select this)
+                                                     (style "opacity" 0))
+                                                 (sub (str "end/translate-to-topbar/" n) output-chan)
                                                  (go-loop [] (<! output-chan)
                                                           (js/console.log this)
                                                           (.. js/d3 (select this)
@@ -118,7 +96,7 @@
                                          (println "send to topbar" n)
                                          (put! input-chan {:topic (str "start/topbar-icon-slot/" n)})
                                          (let [output-chan (chan)]
-                                           (sub our-pub (str "end/topbar-icon-slot/" n) output-chan)
+                                           (sub (str "end/topbar-icon-slot/" n) output-chan)
                                            (go-loop []
                                              (let [{:keys [position]} (<! output-chan)
                                                    [t1 l1] position
@@ -131,7 +109,7 @@
                                                    (style "transform" (str "translate(" (- (- l0 l1)) "px," (- (- t0 t1)) "px)"))
                                                    (on "end" (fn []
                                                                (println "will remove" n)
-                                                               (put! input-chan {:topic (str "display/topbar-icon/" n)})
+                                                               (put! input-chan {:topic (str "end/translate-to-topbar/" n)})
                                                                (.. js/d3 (select this)
                                                                    remove)
                                                                (put! input-chan {:topic "end"})
@@ -146,3 +124,4 @@
   (render
    (.. js/d3 (select "#app"))
    (root)))
+(main)
