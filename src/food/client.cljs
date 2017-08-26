@@ -115,23 +115,6 @@
                                   (reg (str "exit/list-item/" n) output-chan)
                                   (go (let [{:keys [pid topic]} (<! output-chan)]
                                         (put! pid (.. js/d3 (select this))))))))))}
-
-                                  ;; (let [{:keys [position]} (<! output-chan)
-                                  ;;     [t1 l1] position
-                                  ;;     [t0 l0] (pos (.. js/d3 (select this) (select "i") node))]
-
-                                  ;; (.. js/d3 (select this)
-                                  ;;     (select "i")
-                                  ;;     (transition)
-                                  ;;     (duration 2000)
-                                  ;;     (style "transform" (str "translate(" (- (- l0 l1)) "px," (- (- t0 t1)) "px)"))
-                                  ;;     (on "end" (fn []
-                                  ;;                 ;; (println "will remove" n)
-                                  ;;                 (put! input-chan {:topic (str "end/translate-to-topbar/" n)})
-                                  ;;                 (.. js/d3 (select this)
-                                  ;;                     remove)
-                                  ;;                 (put! input-chan {:topic "end"})))))
-
       [:div.ui.icon.item>i.huge.icon
        {:join (d3
                (classed n true))}]])])
