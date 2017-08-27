@@ -3,15 +3,18 @@
              [food.timeline :as sut]))
 
 (deftest scratch
-  (let [t (sut/timelines)
+  (let [ctx (sut/context)
         screen (atom "")
         ]
 
-    (swap! t assoc-in ["enter-exit"] ["enter" #(swap! screen str "123") "exit"])
-    (swap! t assoc-in ["enter"]      [#(swap! screen str  "a")])
-    (swap! t assoc-in ["exit"]       [#(swap! screen str  "b")])
+    (swap! ctx assoc-in [:test :enter-exit] [:enter
+                                             #(swap! screen str (sut/lookup @ctx :test :somevalue))
+                                             :exit])
+    (swap! ctx assoc-in [:test :enter]      [#(swap! screen str  "a")])
+    (swap! ctx assoc-in [:test :somevalue]  "123")
+    (swap! ctx assoc-in [:test :exit]       [#(swap! screen str  "b")])
 
-    (sut/run @t)
+    (sut/play :test @ctx)
     (is (= "a123b" @screen))
     )
 

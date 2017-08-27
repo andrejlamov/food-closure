@@ -1,21 +1,22 @@
 (ns food.timeline)
 
-(defn timelines []
+(defn context []
   (atom {}))
 
-(defn lookup [timelines f]
-  (if (string? f)
-    (get timelines f)
-    f))
+(defn lookup [context ns f]
+  (if (fn? f)
+    f
+    (get-in context [ns f])
+    ))
 
-(defn run-timeline [timeline timelines]
-  (doall (map (fn [f] (f)) (flatten (map (partial lookup timelines) timeline)))))
+(defn play-timeline [context ns timeline]
+  (doall (map (fn [f] (f)) (flatten (map (partial lookup context ns) timeline)))))
 
-(defn run [timelines]
-  (if (contains? timelines "enter-exit")
-    (let [line (get timelines "enter-exit")]
-      (run-timeline line timelines))
+(defn play [ns context]
+  (if (get-in context [ns :enter-exit])
+    (let [timeline (get-in context [ns :enter-exit])]
+      (play-timeline context ns timeline))
     (do
-      (run-timeline (get timelines "enter" []) timelines)
-      (run-timeline (get timelines "exit" []) timelines))))
+      (play-timeline context ns (get-in context [ ns :enter ] []))
+      (play-timeline context ns (get-in context [ ns :exit ] [])))))
 
