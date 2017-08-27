@@ -4,17 +4,18 @@
 
 (deftest scratch
   (let [ctx (sut/context)
+        ns  :test
         screen (atom "")
         ]
 
-    (swap! ctx assoc-in [:test :enter-exit] [:enter
-                                             #(swap! screen str (sut/lookup @ctx :test :somevalue))
+    (swap! ctx assoc-in [ns :enter-exit] [:enter
+                                             #(swap! screen str (sut/lookup @ctx ns :somevalue))
                                              :exit])
-    (swap! ctx assoc-in [:test :enter]      [#(swap! screen str  "a")])
-    (swap! ctx assoc-in [:test :somevalue]  "123")
-    (swap! ctx assoc-in [:test :exit]       [#(swap! screen str  "b")])
+    (swap! ctx assoc-in [ns :enter]      [#(swap! screen str  "a")])
+    (swap! ctx assoc-in [ns :somevalue]  "123")
+    (swap! ctx assoc-in [ns :exit]       [#(swap! screen str  "b")])
 
-    (sut/play :test @ctx)
+    (sut/play @ctx)
     (is (= "a123b" @screen))
     )
 
