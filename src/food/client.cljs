@@ -40,48 +40,67 @@
 
 (declare root main)
 
+(defn if-not-active [this fun]
+  (when (not (.. js/d3
+                 (active this)))
+    (fun)))
+
 (defn top-bar []
   [:div.ui.top.attached.menu {:join (d3 (style "height" "6em"))}
    (for [n (:top-items @state)]
      [:div.ui.icon.item
       {:id n
+       :click (fn [d]
+                (swap! state update-in [:top-items] (partial remove #{n}))
+                (main))
        :exit (d3 (each (fn []
                          (this-as this
-                                  (let [self (.. js/d3 (select this))
-                                        f (fn [cb] (.. self
-                                                     (transition)
-                                                     (duration 1000)
-                                                     (style "padding-left" 0)
-                                                     (style "padding-right" 0)
-                                                     (style "transform" "scaleX(0)")
-                                                     (remove))
-                                            (cb))]
-                                    (tl/add anim-ctx (keyword "dock" n) :exit [f]))))))
+                           (println "exit" n)
+                           (let [self (.. js/d3 (select this))
+                                 w     (.. self (style "width"))
+                                 lp     (.. self (style "padding-left"))
+                                 rp     (.. self (style "padding-right"))
+                                 f (fn [cb]
+                                     (.. self
+                                         (select "i")
+                                         (transition 500)
+                                         (style "opacity" 0)
+                                         (on "end" (fn []
+                                                     (.. self
+                                                         (transition)
+                                                         (duration 500)
+                                                         (style "width" "0px")
+                                                         (style "padding-left" "0px")
+                                                         (style "padding-right" "0px")
+                                                         (remove)
+                                                         (on "end" cb)))
+                                             )))]
+                               (if-not-active this #(tl/add anim-ctx (keyword "dock" n) :enter [f])))))))
 
        :enter (d3 (each (fn []
                           (this-as this
                                    (let [self (.. js/d3 (select this))
-                                         lp   (.. self (style "padding-left"))
-                                         rp   (.. self (style "padding-right"))
+                                         lp  (js/parseInt (.. self (style "padding-left")))
+                                         rp  (js/parseInt (.. self (style "padding-right")))
+                                         w   (+ lp rp (*  2 (js/parseInt (.. self (style "width")))))
                                          enter (fn [cb]
                                                  (.. self
-                                                     (style "transform" "scaleX(0)")
-                                                     (style "transform" "scaleX(0)")
+                                                     (style "width" 0)
                                                      (style "padding-left" 0)
                                                      (style "padding-right" 0)
                                                      (transition)
-                                                     (duration 1000)
-                                                     (style "padding-left" lp)
-                                                     (style "padding-right" rp)
-                                                     (style "transform" "scaleX(1)"))
-                                                 (.. self
-                                                     (select "i")
-                                                     (transition)
-                                                     (duration 1000)
-                                                     (style "opacity" 1))
-                                                 (cb))]
-
-                                     (tl/add anim-ctx (keyword "fly-to-dock" n) :enter [enter]))
+                                                     (duration 500)
+                                                     (style "width" (str w "px"))
+                                                     (style "padding-left" (str lp "px"))
+                                                     (style "padding-right" (str rp "px"))
+                                                     (on "end" (fn []
+                                                                 (.. self
+                                                                     (select "i")
+                                                                     (transition)
+                                                                     (duration 500)
+                                                                     (style "opacity" 1)
+                                                                     (on "end" cb))))))]
+                                     (if-not-active this #(tl/add anim-ctx (keyword "flying" n) :enter [enter])))))))
 
                                    ;; (let [self (.. js/d3 (select this))
                                    ;;        lp   (.. self (style "padding-left"))
@@ -123,7 +142,7 @@
                                    ;;                  (fn []
                                    ;;                    (.. self (select "i")
                                    ;;                        (style "opacity" 1)))))))
-))))}
+       }
       [:i.huge.icon {:id n
                      :join (d3 (classed n true)
                                (style "color" "red"))
@@ -139,38 +158,42 @@
        :click (fn [d]
                 (swap! state update-in [:list-items] (partial remove #{n}))
                 (swap! state update-in [:top-items] conj n)
-                (main)
-                )
+                (main))
 
        :enter (d3 (style "opacity" 0)
                   (transition)
                   (style "opacity" 1)
                   (attr "class" "ui vertical segment"))
        :exit  (d3 (each (fn [] (this-as this
-                                (let [self (.. js/d3 (select this))
-                                      tr-name (str "exit/list-item/" n)
-                                      f (fn [cb]
-                                          (.. self
-                                              (transition tr-name)
-                                              (duration 1000)
-                                              (style "transform" "scaleY(0)")
-                                              (transition tr-name)
-                                              (style "height" "0")
-                                              (style "padding-top" "0")
-                                              (style "padding-bottom" "0")
-                                              remove)
-                                          (cb)
-                                          )]
-                                  (when (not (.. js/d3
-                                                 (active this tr-name)))
-                                    (tl/add anim-ctx (keyword "list" n) :exit [f]))
+                                        (let [self (.. js/d3 (select this))
+                                              f (fn [cb]
+                                                  (.. self
+                                                      (select "i")
+                                                      (transition)
+                                                      (duration 500)
+                                                      (style "opacity" 0)
+                                                      (on "end" (fn []
+                                                                  (.. self
+                                                                      (style "transform" "scaleX(1)")
+                                                                      (transition)
+                                                                      (duration 500)
+                                                                      (transition)
+                                                                      (style "height" "0")
+                                                                      (style "transform" "scaleX(0)")
+                                                                      (style "padding-top" "0")
+                                                                      (style "padding-bottom" "0")
+                                                                      remove
+                                                                      (on "end" cb)
+                                                                      )))))]
+                                          (if-not-active this #(tl/add anim-ctx (keyword "flying" n) :exit [f]))
+                                          )))))
 
                                   ;; (let [output-chan (chan)]
                                   ;;   (reg (str "exit/list-item/" n) output-chan)
                                   ;;   (go (let [{:keys [pid topic]} (<! output-chan)]
                                   ;;         (println "exit" n)
                                   ;;         (put! pid [(.. js/d3 (select this)) this]))))
-                                  )))))}
+       }
       [:div.ui.icon.item>i.huge.icon
        {:join (d3
                (classed n true))}]])])
@@ -184,9 +207,7 @@
   (render
    (.. js/d3 (select "#app"))
    (root))
-  (println @anim-ctx)
-  (tl/play @anim-ctx)
-  )
+  (tl/play @anim-ctx))
 
 (main)
 
