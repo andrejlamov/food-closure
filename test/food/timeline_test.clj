@@ -8,12 +8,12 @@
           ns  :test
           screen (atom "")]
 
-      (swap! ctx assoc-in [ns :enter-exit] [:enter
-                                            #(swap! screen str (sut/lookup @ctx ns :somevalue))
-                                            :exit])
-      (swap! ctx assoc-in [ns :enter]      [#(swap! screen str  "a")])
-      (swap! ctx assoc-in [ns :somevalue]  "123")
-      (swap! ctx assoc-in [ns :exit]       [#(swap! screen str  "b")])
+      (sut/add ctx ns :enter-exit [:enter
+                                   #(swap! screen str (sut/lookup @ctx ns :somevalue))
+                                   :exit])
+      (sut/add ctx ns :enter [#(swap! screen str  "a")])
+      (sut/add ctx ns :somevalue  "123")
+      (sut/add ctx ns :exit  [#(swap! screen str  "b")])
 
       (sut/play @ctx)
       (is (= "a123b" @screen))))
@@ -23,12 +23,13 @@
           ns  :test
           screen (atom "")]
 
-      (swap! ctx assoc-in [ns :enter-exit] [:enter
-                                            #(swap! screen str (sut/lookup @ctx ns :somevalue))
-                                            :exit])
-      (swap! ctx assoc-in [ns :somevalue]  "123")
-      (swap! ctx assoc-in [ns :exit]       [#(swap! screen str  "b")])
+      (sut/add ctx ns :enter-exit [:enter
+                                   #(swap! screen str (sut/lookup @ctx ns :somevalue))
+                                   :exit])
+      (sut/add ctx ns :somevalue  "123")
+      (sut/add ctx ns :exit  [#(swap! screen str  "b")])
 
       (sut/play @ctx)
+
       (is (= "b" @screen)))))
 

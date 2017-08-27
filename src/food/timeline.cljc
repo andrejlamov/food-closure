@@ -8,6 +8,9 @@
     f
     (get-in context [ns f])))
 
+(defn add [ctx ns name timeline]
+  (swap! ctx assoc-in [ns name] timeline))
+
 (defn play-timeline [context ns timeline]
   (doall (map (fn [f] (f)) (flatten (map (partial lookup context ns) timeline)))))
 
