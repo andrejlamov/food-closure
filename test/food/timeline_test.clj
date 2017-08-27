@@ -2,23 +2,21 @@
   (:require  [clojure.test :refer :all]
              [food.timeline :as sut]))
 
-(def play (partial sut/play sut/dummy-player))
-
 (deftest scratch
   (testing "override enter and exit with enter-exit if all three are defined in ctx"
     (let [ctx (sut/context)
           ns  :test
           screen (atom "")]
-  
         (sut/add ctx ns :enter-exit [:enter
-                                   #(swap! screen str (sut/lookup @ctx ns :somevalue))
-                                   :exit])
-      (sut/add ctx ns :enter [#(swap! screen str  "a")])
-      (sut/add ctx ns :somevalue  "123")
-      (sut/add ctx ns :exit  [#(swap! screen str  "b")])
+                                     (fn [cb] (swap! screen str (sut/lookup @ctx ns :somevalue)) (cb))
+                                     :exit])
+        (sut/add ctx ns :enter [(fn [cb] (swap! screen str "a") (cb))])
+        (sut/add ctx ns :somevalue  "123")
+        (sut/add ctx ns :exit  [(fn [cb] (swap! screen str "b") (cb))])
 
-      (play @ctx)
-      (is (= "a123b" @screen))))
+
+        (sut/play @ctx)
+        (is (= "a123b" @screen))))
 
   (testing "play enter and exit if enter-exit can not be played"
     (let [ctx (sut/context)
@@ -26,12 +24,11 @@
           screen (atom "")]
 
       (sut/add ctx ns :enter-exit [:enter
-                                   #(swap! screen str (sut/lookup @ctx ns :somevalue))
+                                   (fn [cb] (swap! screen str (sut/lookup @ctx ns :somevalue) (cb)))
                                    :exit])
       (sut/add ctx ns :somevalue  "123")
-      (sut/add ctx ns :exit  [#(swap! screen str  "b")])
+      (sut/add ctx ns :exit  [(fn [cb] (swap! screen str  "b") (cb))])
 
-      (play @ctx)
+      (sut/play @ctx)
 
       (is (= "b" @screen)))))
-

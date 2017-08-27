@@ -48,13 +48,14 @@
        :exit (d3 (each (fn []
                          (this-as this
                                   (let [self (.. js/d3 (select this))
-                                        f (.. self
-                                              (transition)
-                                              (duration 1000)
-                                              (style "padding-left" 0)
-                                              (style "padding-right" 0)
-                                              (style "transform" "scaleX(0)")
-                                              (remove))]
+                                        f (fn [cb] (.. self
+                                                     (transition)
+                                                     (duration 1000)
+                                                     (style "padding-left" 0)
+                                                     (style "padding-right" 0)
+                                                     (style "transform" "scaleX(0)")
+                                                     (remove))
+                                            (cb))]
                                     (tl/add anim-ctx (keyword "dock" n) :exit [f]))))))
 
        :enter (d3 (each (fn []
@@ -62,7 +63,7 @@
                                    (let [self (.. js/d3 (select this))
                                          lp   (.. self (style "padding-left"))
                                          rp   (.. self (style "padding-right"))
-                                         enter (fn []
+                                         enter (fn [cb]
                                                  (.. self
                                                      (style "transform" "scaleX(0)")
                                                      (style "transform" "scaleX(0)")
@@ -77,7 +78,8 @@
                                                      (select "i")
                                                      (transition)
                                                      (duration 1000)
-                                                     (style "opacity" 1)))]
+                                                     (style "opacity" 1))
+                                                 (cb))]
 
                                      (tl/add anim-ctx (keyword "fly-to-dock" n) :enter [enter]))
 
@@ -147,7 +149,7 @@
        :exit  (d3 (each (fn [] (this-as this
                                 (let [self (.. js/d3 (select this))
                                       tr-name (str "exit/list-item/" n)
-                                      f (fn []
+                                      f (fn [cb]
                                           (.. self
                                               (transition tr-name)
                                               (duration 1000)
@@ -156,7 +158,9 @@
                                               (style "height" "0")
                                               (style "padding-top" "0")
                                               (style "padding-bottom" "0")
-                                              remove))]
+                                              remove)
+                                          (cb)
+                                          )]
                                   (when (not (.. js/d3
                                                  (active this tr-name)))
                                     (tl/add anim-ctx (keyword "list" n) :exit [f]))
@@ -181,7 +185,7 @@
    (.. js/d3 (select "#app"))
    (root))
   (println @anim-ctx)
-  (tl/play tl/dummy-player @anim-ctx)
+  (tl/play @anim-ctx)
   )
 
 (main)
