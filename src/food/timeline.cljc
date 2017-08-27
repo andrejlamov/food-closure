@@ -6,7 +6,7 @@
 (defn lookup [context ns f]
   (if (fn? f)
     f
-    (get-in context [ns f])))
+    (get-in context [ns f] identity)))
 
 (defn add [ctx ns name timeline]
   (swap! ctx assoc-in [ns name] timeline))

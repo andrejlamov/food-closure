@@ -9,8 +9,8 @@
     (let [ctx (sut/context)
           ns  :test
           screen (atom "")]
-
-      (sut/add ctx ns :enter-exit [:enter
+  
+        (sut/add ctx ns :enter-exit [:enter
                                    #(swap! screen str (sut/lookup @ctx ns :somevalue))
                                    :exit])
       (sut/add ctx ns :enter [#(swap! screen str  "a")])
