@@ -16,10 +16,12 @@
    (doseq [[ns _] context]
      (play context ns)))
   ([context ns]
-   (if (get-in context [ns :enter-exit])
-     (let [timeline (get-in context [ns :enter-exit])]
-       (play-timeline context ns timeline))
-     (do
-       (play-timeline context ns (get-in context [ns :enter] []))
-       (play-timeline context ns (get-in context [ns :exit] []))))))
+   (let [enter-exit (get-in context [ns :enter-exit])
+         enter (get-in context [ns :enter])
+         exit (get-in context [ns :exit])]
+     (if (and enter-exit enter exit)
+       (play-timeline context ns enter-exit)
+       (do
+         (play-timeline context ns (or enter []))
+         (play-timeline context ns (or exit [])))))))
 
