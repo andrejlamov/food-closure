@@ -2,12 +2,9 @@
   (:require [cljsjs.semantic-ui]
             [cljsjs.d3]
             [cljsjs.jquery]
-            [cljs.core.async :as async
-             :refer [<! >! timeout chan close! sliding-buffer put! alts!]]
             [food.render :as r :refer [render transform]]
             [food.timeline :as tl]
-            [food.macros :refer [d3]])
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
+            [food.macros :refer [d3]]))
 
 (enable-console-print!)
 
@@ -29,20 +26,6 @@
 (defn pos [e]
   (let [o (.. (js/$ e) offset)]
     [(.-top o) (.-left o)]))
-
-(def input-chan (chan))
-(def our-pub (async/pub input-chan :topic))
-
-(defn reg [topic chan]
-  (async/sub our-pub topic chan))
-
-(defn rpc [topic on-success on-error]
-  (let [c (timeout 0)]
-    (put! input-chan {:topic topic :pid c})
-    (go (let [a (<! c)]
-          (if (nil? a)
-            (on-error a)
-            (on-success a))))))
 
 (declare root main)
 
@@ -195,12 +178,6 @@
                                           (if-not-active this [(keyword "flying" n) :enter-selection] #(tl/add anim-ctx (keyword "flying" n) :exit [exit]))
                                           (if-not-active this #(tl/add anim-ctx (keyword "flying" n) :exit-selection self))
                                           )))))
-
-                                  ;; (let [output-chan (chan)]
-                                  ;;   (reg (str "exit/list-item/" n) output-chan)
-                                  ;;   (go (let [{:keys [pid topic]} (<! output-chan)]
-                                  ;;         (println "exit" n)
-                                  ;;         (put! pid [(.. js/d3 (select this)) this]))))
        }
       [:div.ui.icon.item>i.huge.icon
        {
