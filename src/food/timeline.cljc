@@ -11,20 +11,22 @@
 (defn add [ctx ns name timeline]
   (swap! ctx assoc-in [ns name] timeline))
 
-(defn play-timeline [context ns timeline]
-  (doall (map (fn [f] (f)) (flatten (map (partial lookup context ns) timeline)))))
+(defn dummy-player [context ns timeline]
+  (doseq [f (flatten (map (partial lookup context ns) timeline))]
+    (f)))
 
 (defn play
-  ([context]
-   (doseq [[ns _] context]
-     (play context ns)))
-  ([context ns]
-   (let [enter-exit (get-in context [ns :enter-exit])
-         enter (get-in context [ns :enter])
-         exit (get-in context [ns :exit])]
+  ([player ctx]
+   (doseq [[ns _] ctx]
+     (play player ctx ns)))
+  ([player ctx ns]
+   (let [enter-exit (get-in ctx [ns :enter-exit])
+         enter (get-in ctx [ns :enter])
+         exit (get-in ctx [ns :exit])]
      (if (and enter-exit enter exit)
-       (play-timeline context ns enter-exit)
+       (player ctx ns enter-exit)
        (do
-         (play-timeline context ns (or enter []))
-         (play-timeline context ns (or exit [])))))))
+         (player ctx ns (or enter []))
+         (player ctx ns (or exit [])))))))
+
 

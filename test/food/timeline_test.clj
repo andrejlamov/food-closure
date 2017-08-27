@@ -2,6 +2,8 @@
   (:require  [clojure.test :refer :all]
              [food.timeline :as sut]))
 
+(def play (partial sut/play sut/dummy-player))
+
 (deftest scratch
   (testing "override enter and exit with enter-exit if all three are defined in ctx"
     (let [ctx (sut/context)
@@ -15,7 +17,7 @@
       (sut/add ctx ns :somevalue  "123")
       (sut/add ctx ns :exit  [#(swap! screen str  "b")])
 
-      (sut/play @ctx)
+      (play @ctx)
       (is (= "a123b" @screen))))
 
   (testing "play enter and exit if enter-exit can not be played"
@@ -29,7 +31,7 @@
       (sut/add ctx ns :somevalue  "123")
       (sut/add ctx ns :exit  [#(swap! screen str  "b")])
 
-      (sut/play @ctx)
+      (play @ctx)
 
       (is (= "b" @screen)))))
 
