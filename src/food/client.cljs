@@ -32,20 +32,11 @@
 (defn save-selection [path sel]
   (swap! selections assoc-in path sel))
 
+
 (defn not-active? [sel]
   (if (nil? sel)
     false
     (nil? (.. js/d3 (active sel)))))
-
-(defn if-not-active
-  ([this path fun]
-   (when (not (or
-               (.. js/d3 (active (.. (get-in @selections path) node)))
-               (.. js/d3 (active this))))
-     (fun)))
-  ([this fun]
-  (when (not (.. js/d3 (active this)))
-    (fun))))
 
 (defn style [sel]
   (let [
@@ -156,19 +147,19 @@
        :exit (d3 (each (fn []
                          (this-as this
                                   (let [self (.. js/d3 (select this))
+                                        ns   (keyword "dock" n)
                                         f    (partial top-bar-item-exit self)]
-                                    (if-not-active this #(tl/add anim-ctx (keyword "dock" n) :exit [f])))))))
+                                    (when (not-active? self)
+                                      (tl/add anim-ctx ns :exit [f])))))))
        :enter (d3 (each (fn []
                           (this-as this
                             (let [self       (.. js/d3 (select this))
-                                  ns         (keyword "flying" n)
-                                  enter      (partial top-bar-item-enter self)
-                                  enter-exit (partial top-bar-item-flying self ns)]
+                                  ns         (keyword "flying" n)]
                               (save-selection [ns :enter-selection] self)
                               (when (not-active? this)
-                                (tl/add anim-ctx ns :enter-exit [enter-exit]))
+                                (tl/add anim-ctx ns :enter-exit [(partial top-bar-item-flying self ns)]))
                               (when (not-active? this)
-                                (tl/add anim-ctx ns :enter [enter])))))))
+                                (tl/add anim-ctx ns :enter [(partial  top-bar-item-enter self)])))))))
        }
       [:i.huge.icon {:id n
                      :join (d3 (classed n true)
