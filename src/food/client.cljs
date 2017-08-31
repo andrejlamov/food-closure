@@ -9,7 +9,6 @@
 (enable-console-print!)
 
 (def anim-ctx (tl/context))
-(def selections (atom {}))
 
 (def state (atom {:top-items #{
                                "play"
@@ -28,10 +27,6 @@
     [(.-top o) (.-left o)]))
 
 (declare root main)
-
-(defn save-selection [path sel]
-  (swap! selections assoc-in path sel))
-
 
 (defn not-active? [sel]
   (if (nil? sel)
@@ -95,7 +90,7 @@
         (style "padding-right" (str padding-right "px"))
         (on "end"
             #(let [
-                   e (get-in @selections [ns :exit-selection])
+                   e (tl/get-node anim-ctx [ns :exit-selection])
                    i1 (.. parent (select "i"))
                    i0 (.. js/d3 (select e) (select "i"))
                    [t1 l1] (pos (.. i1 node))
@@ -157,8 +152,8 @@
                           (this-as this
                             (let [self       (.. js/d3 (select this))
                                   ns         (keyword "flying" n)]
-                              (save-selection [ns :enter-selection] this)
-                              '(when (not-active? this)
+                              (tl/store-node anim-ctx [ns :enter-selection] this)
+                              (when (not-active? this)
                                  (tl/add-override anim-ctx ns (partial top-bar-item-flying self ns)))
                               (when (not-active? this)
                                 (tl/add-enter anim-ctx ns (partial top-bar-item-enter self))))))))
@@ -183,9 +178,9 @@
                                 (println "exit" n)
                                 (let [self (.. js/d3 (select this))
                                       ns   (keyword "flying" n)
-                                      flying-enter-selection (get-in @selections [ns :enter-selection])]
-                                  (save-selection [ns :exit-selection] this)
-                                  (when (not-active? flying-enter-selection)
+                                      flying-enter-node (tl/get-node anim-ctx [ns :enter-selection])]
+                                  (tl/store-node anim-ctx [ns :exit-selection] this)
+                                  (when (not-active? flying-enter-node)
                                     (tl/add-exit anim-ctx ns (partial bottom-item-exit self))))
                                 ))))
        }

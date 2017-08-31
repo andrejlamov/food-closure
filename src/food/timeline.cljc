@@ -5,6 +5,13 @@
          :selections {}
          }))
 
+(defn store-node [ctx path sel]
+  (swap! ctx assoc-in (concat [:selections] path) sel))
+
+(defn get-node [ctx path]
+  (get-in @ctx (concat [:selections] path)))
+
+
 (defn clear [ctx]
   (swap! ctx assoc :animations {}))
 
