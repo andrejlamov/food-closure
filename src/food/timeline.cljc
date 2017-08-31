@@ -19,7 +19,9 @@
        @acc)))
 
 (defn not-active? [selection]
-  #?(:cljs
+  #?(
+     :clj true
+     :cljs
      (do
        (if (nil? selection)
          true
