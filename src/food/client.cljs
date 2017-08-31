@@ -151,8 +151,8 @@
                            (let [self (.. js/d3 (select this))
                                  i    (.. self (select "i") node)
                                  ns   (keyword "dock" n)]
-                             (when (not-active? i))
-                               (tl/add anim-ctx ns :exit [(partial top-bar-item-exit self)]))))))
+                             (when (not-active? i)
+                               (tl/add anim-ctx ns :exit [(partial top-bar-item-exit self)])))))))
        :enter (d3 (each (fn []
                           (this-as this
                             (let [self       (.. js/d3 (select this))
