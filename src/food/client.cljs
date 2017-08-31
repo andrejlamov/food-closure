@@ -71,7 +71,7 @@
                         (style "opacity" 1)
                         ))))))
 
-(defn top-bar-item-flying [parent ns enter-node exit-selection]
+(defn flying [parent ns enter-node exit-selection]
   (let [{:keys [padding-left padding-right width]} (style parent)]
     (.. parent
         (style "padding-left" 0)
@@ -143,7 +143,7 @@
                             (let [self       (.. js/d3 (select this))
                                   ns         (keyword "flying" n)]
                               (animation/on-enter ctx ns self top-bar-item-enter)
-                              (animation/on-both ctx ns (partial top-bar-item-flying self ns)))))))
+                              (animation/on-both ctx ns (partial flying self ns)))))))
 
        }
       [:i.huge.icon {:id n
