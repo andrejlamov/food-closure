@@ -1,31 +1,48 @@
 (ns food.timeline)
 
 (defn context []
-  (atom {}))
+  (atom {:animations {}
+         :selections {}
+         }))
 
-(defn lookup [context ns f]
+(defn clear [ctx]
+  (swap! ctx assoc :animations {}))
+
+(defn lookup [ctx ns f]
   (if (fn? f)
     f
-    (get-in context [ns f] (fn [& args]))))
+    (get-in ctx [:animations ns f] (fn [& args]))))
 
-(defn add [ctx ns name timeline]
-  (swap! ctx assoc-in [ns name] timeline))
+(defn- add [ctx ns t timeline]
+  (if (fn? timeline)
+    (swap! ctx assoc-in [:animations ns t] [timeline])
+    (swap! ctx assoc-in [:animations ns t] timeline)))
 
-(defn player [context ns timeline]
-  (let [funs     (flatten (map (partial lookup context ns) timeline))
+(defn add-enter [ctx ns timeline]
+  (add ctx ns :enter timeline))
+
+(defn add-exit [ctx ns timeline]
+  (add ctx ns :exit timeline))
+
+(defn add-override [ctx ns timeline]
+  (add ctx ns :override timeline))
+
+(defn player [ctx ns timeline]
+  (let [funs     (flatten (map (partial lookup ctx ns) timeline))
         reversed (reverse (concat funs [(fn [])]))]
     ((reduce (fn [b a] (partial a (partial b))) reversed))))
 
 (defn play
   ([ctx]
-   (doseq [[ns _] ctx]
-     (play ctx ns)))
+   (doseq [[ns _] (:animations ctx)]
+     (play ctx ns))
+   ctx)
   ([ctx ns]
-   (let [enter-exit (get-in ctx [ns :enter-exit])
-         enter (get-in ctx [ns :enter])
-         exit (get-in ctx [ns :exit])]
-     (if (and enter-exit enter exit)
-       (player ctx ns enter-exit)
+   (let [override (get-in ctx [:animations ns :override])
+         enter    (get-in ctx [:animations ns :enter])
+         exit     (get-in ctx [:animations ns :exit])]
+     (if (and override enter exit)
+       (player ctx ns override)
        (do
          (player ctx ns (or enter []))
          (player ctx ns (or exit [])))))))

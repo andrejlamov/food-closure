@@ -19,7 +19,7 @@
                                }
                   :list-items #{"chrome"
                                 "firefox"
-                                "safari"
+                                "google"
                                 "edge"
                                 "opera"}}))
 
@@ -51,12 +51,12 @@
   (.. parent
       (select "i")
       (transition)
-      (duration 2000)
+      (duration 500)
       (style "opacity" 0)
       (on "end"
           #(.. parent
                (transition)
-               (duration 2000)
+               (duration 500)
                (style "width" "0px")
                (style "padding-left" "0px")
                (style "padding-right" "0px")
@@ -123,8 +123,8 @@
 (defn bottom-item-exit [parent cb]
   (.. parent
       (select "i")
-      (style "opacity" 0)
       (transition)
+      (style "opacity" 0)
       (on "end" (fn []
                   (.. parent
                       (style "transform" "scaleX(1)")
@@ -152,16 +152,16 @@
                                  i    (.. self (select "i") node)
                                  ns   (keyword "dock" n)]
                              (when (not-active? i)
-                               (tl/add anim-ctx ns :exit [(partial top-bar-item-exit self)])))))))
+                               (tl/add-exit anim-ctx ns (partial top-bar-item-exit self))))))))
        :enter (d3 (each (fn []
                           (this-as this
                             (let [self       (.. js/d3 (select this))
                                   ns         (keyword "flying" n)]
                               (save-selection [ns :enter-selection] this)
+                              '(when (not-active? this)
+                                 (tl/add-override anim-ctx ns (partial top-bar-item-flying self ns)))
                               (when (not-active? this)
-                                (tl/add anim-ctx ns :enter-exit [(partial top-bar-item-flying self ns)]))
-                              (when (not-active? this)
-                                (tl/add anim-ctx ns :enter [(partial top-bar-item-enter self)])))))))
+                                (tl/add-enter anim-ctx ns (partial top-bar-item-enter self))))))))
        }
       [:i.huge.icon {:id n
                      :join (d3 (classed n true)
@@ -186,7 +186,7 @@
                                       flying-enter-selection (get-in @selections [ns :enter-selection])]
                                   (save-selection [ns :exit-selection] this)
                                   (when (not-active? flying-enter-selection)
-                                    (tl/add anim-ctx ns :exit [(partial bottom-item-exit self)])))
+                                    (tl/add-exit anim-ctx ns (partial bottom-item-exit self))))
                                 ))))
        }
       [:div.ui.icon.item>i.huge.icon
