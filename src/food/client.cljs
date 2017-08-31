@@ -8,7 +8,7 @@
 
 (enable-console-print!)
 
-(def anim-ctx (tl/context))
+(def ctx (tl/context))
 
 (def state (atom {:top-items #{
                                "play"
@@ -28,11 +28,6 @@
 
 (declare root main)
 
-(defn not-active? [sel]
-  (if (nil? sel)
-    true
-    (nil? (.. js/d3 (active sel)))))
-
 (defn style [sel]
   (let [
         lp (js/parseInt (.. sel (style "padding-left")))
@@ -42,7 +37,7 @@
     {:padding-left lp :padding-right rp :width w}))
 
 
-(defn top-bar-item-exit [parent cb]
+(defn top-bar-item-exit [parent]
   (.. parent
       (select "i")
       (transition)
@@ -55,10 +50,9 @@
                (style "width" "0px")
                (style "padding-left" "0px")
                (style "padding-right" "0px")
-               (remove)
-               (on "end" cb)))))
+               (remove)))))
 
-(defn top-bar-item-enter [parent cb]
+(defn top-bar-item-enter [parent]
   (let [{:keys [padding-left padding-right width]} (style parent)]
     (.. parent
         (style "width" 0)
@@ -75,9 +69,9 @@
                         (transition)
                         (duration 500)
                         (style "opacity" 1)
-                        (on "end" cb)))))))
+                        ))))))
 
-(defn top-bar-item-flying [parent ns cb]
+(defn top-bar-item-flying [parent ns enter-node exit-selection]
   (let [{:keys [padding-left padding-right width]} (style parent)]
     (.. parent
         (style "padding-left" 0)
@@ -87,35 +81,35 @@
         (duration 500)
         (style "width" (str width "px"))
         (style "padding-left" (str padding-left "px"))
-        (style "padding-right" (str padding-right "px"))
-        (on "end"
-            #(let [
-                   e (tl/get-node anim-ctx [ns :exit-selection])
-                   i1 (.. parent (select "i"))
-                   i0 (.. js/d3 (select e) (select "i"))
-                   [t1 l1] (pos (.. i1 node))
-                   [t0 l0] (pos (.. i0 node))
-                   t (- (- t1 t0))
-                   l (- (- l1 l0 4))]
-               (.. i1
-                   (style "transform" (str "translate(" l "px," t "px)"))
-                   (style "z-index" 1)
-                   (style "opacity" 1)
-                   (transition)
-                   (duration 500)
-                   (style "transform" (str "translate(0,0"))
-                   (on "end" (fn [] (.. js/d3
-                                    (select e)
-                                    (transition)
-                                    (duration 500)
-                                    (style "height" "0")
-                                    (style "padding-top" "0")
-                                    (style "padding-bottom" "0")
-                                    remove)
-                               (cb))))
-               (.. i0 (style "visibility" "hidden")))))))
+        (style "padding-right" (str padding-right "px")))
 
-(defn bottom-item-exit [parent cb]
+    (let [
+          i1 (.. parent (select "i"))
+          i0 (.. exit-selection (select "i"))
+          [t1 l1] (pos (.. i1 node))
+          [t0 l0] (pos (.. i0 node))
+          t (- (- t1 t0))
+          l (- (- l1 l0 4))]
+      (.. i1
+          (style "transform" (str "translate(" l "px," t "px)"))
+          (style "z-index" 1)
+          (style "opacity" 1)
+          (transition)
+          (delay 250)
+          (duration 500)
+          (style "transform" (str "translate(0,0"))
+          (on "end" (fn [] (..
+                           exit-selection
+                           (transition)
+                           (duration 500)
+                           (style "height" "0")
+                           (style "padding-top" "0")
+                           (style "padding-bottom" "0")
+                           remove)
+                      )))
+      (.. i0 (style "visibility" "hidden")))))
+
+(defn bottom-item-exit [parent]
   (.. parent
       (select "i")
       (transition)
@@ -131,7 +125,7 @@
                       (style "padding-top" "0")
                       (style "padding-bottom" "0")
                       remove
-                      (on "end" cb))))))
+                      )))))
 
 (defn top-bar []
   [:div.ui.top.attached.menu {:join (d3 (style "height" "6em"))}
@@ -146,17 +140,13 @@
                            (let [self (.. js/d3 (select this))
                                  i    (.. self (select "i") node)
                                  ns   (keyword "dock" n)]
-                             (when (not-active? i)
-                               (tl/add-exit anim-ctx ns (partial top-bar-item-exit self))))))))
+                             (tl/add-exit ctx ns self top-bar-item-exit))))))
        :enter (d3 (each (fn []
-                          (this-as this
+                         (this-as this
                             (let [self       (.. js/d3 (select this))
                                   ns         (keyword "flying" n)]
-                              (tl/store-node anim-ctx [ns :enter-selection] this)
-                              (when (not-active? this)
-                                 (tl/add-override anim-ctx ns (partial top-bar-item-flying self ns)))
-                              (when (not-active? this)
-                                (tl/add-enter anim-ctx ns (partial top-bar-item-enter self))))))))
+                              (tl/add-override ctx ns (partial top-bar-item-flying self ns))
+                              (tl/add-enter ctx ns self top-bar-item-enter))))))
        }
       [:i.huge.icon {:id n
                      :join (d3 (classed n true)
@@ -177,33 +167,33 @@
        :exit  (d3 (each (fn [] (this-as this
                                 (println "exit" n)
                                 (let [self (.. js/d3 (select this))
-                                      ns   (keyword "flying" n)
-                                      flying-enter-node (tl/get-node anim-ctx [ns :enter-selection])]
-                                  (tl/store-node anim-ctx [ns :exit-selection] this)
-                                  (when (not-active? flying-enter-node)
-                                    (tl/add-exit anim-ctx ns (partial bottom-item-exit self))))
+                                      ns   (keyword "flying" n)]
+                                  (tl/add-exit ctx ns self bottom-item-exit))
                                 ))))
        }
-      [:div.ui.icon.item>i.huge.icon
-       {
-        :click (fn [d]
-                 (swap! state update-in [:list-items] #(set (remove #{n} %)))
-                 (swap! state update-in [:top-items] conj n)
-                 (println @state)
-                 (main))
-        :join (d3
-               (classed n true))}]])])
+       [:div.ui.icon.item>i.huge.icon
+        {
+         :click (fn [d]
+                  (swap! state update-in [:list-items] #(set (remove #{n} %)))
+                  (swap! state update-in [:top-items] conj n)
+                  (println @state)
+                  (main))
+         :join (d3
+                (classed n true))
+         }
+        ]
+      ])])
+
 (defn root []
   [:div.ui.container
    (top-bar)
    (bottom)])
 
 (defn main []
-  (reset! anim-ctx {})
+  (tl/clear ctx)
   (render
    (.. js/d3 (select "#app"))
    (root))
-  (tl/play @anim-ctx))
+  (tl/play ctx))
 
 (main)
-

@@ -7,26 +7,21 @@
     (let [ctx (sut/context)
           ns  :test
           screen (atom "")]
-        (sut/add-override ctx ns [:enter
-                                  (fn [cb] (swap! screen str "123") (cb))
-                                  :exit])
-        (sut/add-enter ctx ns (fn [cb] (swap! screen str "a") (cb)))
-        (sut/add-exit ctx ns (fn [cb] (swap! screen str "b") (cb)))
+      (sut/add-override ctx ns (fn [enter-sel exit-sel] (swap! screen str "a123b")))
+      (sut/add-enter    ctx ns nil (fn [sel] (swap! screen str "a")))
+      (sut/add-exit     ctx ns nil (fn [sel] (swap! screen str "b")))
 
-
-        (is (sut/play @ctx))
-        (is (= "a123b" @screen))))
+      (sut/play ctx)
+      (is (= "a123b" @screen))))
 
   (testing "play enter and exit if override can not be played"
     (let [ctx (sut/context)
           ns  :test
           screen (atom "")]
 
-      (sut/add-override ctx ns [:enter
-                                (fn [cb] (swap! screen str "hello" (cb)))
-                                :exit])
-      (sut/add-exit ctx ns (fn [cb] (swap! screen str  "b") (cb)))
+      (sut/add-override ctx ns (fn [enter-sel exit-sel] (swap! screen str "hello" )))
+      (sut/add-exit ctx ns nil (fn [sel] (swap! screen str  "b") ))
 
-      (sut/play @ctx)
+      (sut/play ctx)
 
       (is (= "b" @screen)))))
