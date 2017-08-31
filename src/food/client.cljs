@@ -135,7 +135,6 @@
        :exit (d3 (each (fn []
                          (this-as this
                            (let [self (.. js/d3 (select this))
-                                 i    (.. self (select "i") node)
                                  ns   (keyword "dock" n)]
                              (animation/on-exit ctx ns self top-bar-item-exit))))))
        :enter (d3 (each (fn []
