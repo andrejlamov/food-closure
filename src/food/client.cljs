@@ -35,7 +35,7 @@
 
 (defn not-active? [sel]
   (if (nil? sel)
-    false
+    true
     (nil? (.. js/d3 (active sel)))))
 
 (defn style [sel]
