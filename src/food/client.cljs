@@ -71,7 +71,7 @@
                         (style "opacity" 1)
                         ))))))
 
-(defn flying [parent ns enter-node exit-selection]
+(defn flying [parent ns enter-selection exit-selection]
   (let [{:keys [padding-left padding-right width]} (style parent)]
     (.. parent
         (style "padding-left" 0)
