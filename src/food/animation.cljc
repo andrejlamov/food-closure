@@ -1,4 +1,4 @@
-(ns food.timeline)
+(ns food.animation)
 
 (defn context []
   (atom {:animations {}
@@ -46,13 +46,13 @@
     (store-node ctx [ns t] sel)
     (swap! ctx assoc-in [:animations ns t] cb)))
 
-(defn add-enter [ctx ns sel cb]
+(defn on-enter [ctx ns sel cb]
   (add ctx ns :enter sel cb))
 
-(defn add-exit [ctx ns sel cb]
+(defn on-exit [ctx ns sel cb]
   (add ctx ns :exit sel cb))
 
-(defn add-override [ctx ns cb]
+(defn on-both [ctx ns cb]
   (add ctx ns :override cb))
 
 (defn play
