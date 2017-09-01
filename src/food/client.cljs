@@ -3,14 +3,15 @@
             [cljsjs.d3]
             [cljsjs.jquery]
             [food.render :as r :refer [render transform]]
-            [food.animation :as animation]
-            [food.macros :refer [d3]]))
+            [food.animation :as animation])
+  (:require-macros
+   [food.macros :refer [d3]]))
 
 (enable-console-print!)
 
 (def ctx (animation/context))
 
-(def state (atom {:top-items #{
+(defonce state (atom {:top-items #{
                                "play"
                                "stop"
                                "apple"
@@ -132,24 +133,15 @@
        :click (fn [d]
                 (swap! state update-in [:top-items] #(set (remove #{n} %)))
                 (main))
-       :exit (d3 (each (fn []
-                         (this-as this
-                           (let [self (.. js/d3 (select this))
-                                 ns   (keyword "dock" n)]
-                             (animation/on-exit ctx ns self top-bar-item-exit))))))
-       :enter (d3 (each (fn []
-                         (this-as this
-                            (let [self       (.. js/d3 (select this))
-                                  ns         (keyword "flying" n)]
-                              (animation/on-enter ctx ns self top-bar-item-enter)
-                              (animation/on-both ctx ns (partial flying self ns)))))))
-
+       :exit (fn [selection] (animation/on-exit ctx (keyword "dock" n) selection top-bar-item-exit))
+       :enter (fn [selection] (let [ns (keyword "flying" n)]
+                               (animation/on-enter ctx ns selection top-bar-item-enter)
+                               (animation/on-both ctx ns (partial flying selection ns))))
        }
       [:i.huge.icon {:id n
                      :join (d3 (classed n true)
                                (style "color" "red"))
                      :enter (d3 (style "opacity" 0))}]])])
-
 (defn bottom []
   [:div.ui.bottom.attached.segment
    {:join (d3 (style "height" "100%"))}
@@ -157,16 +149,11 @@
    (for [n (:list-items @state)]
      [:div.ui.vertical.segment
       {:id n
-       :enter (d3 (style "opacity" 0)
-                  (transition)
-                  (style "opacity" 1)
-                  (attr "class" "ui vertical segment"))
-       :exit  (d3 (each (fn [] (this-as this
-                                (println "exit" n)
-                                (let [self (.. js/d3 (select this))
-                                      ns   (keyword "flying" n)]
-                                  (animation/on-exit ctx ns self bottom-item-exit))
-                                ))))
+       :enter #(.. % (style "opacity" 0)
+                   (transition)
+                   (style "opacity" 1)
+                   (attr "class" "ui vertical segment"))
+       :exit (fn [selection] (animation/on-exit ctx (keyword "flying" n) selection bottom-item-exit))
        }
        [:div.ui.icon.item>i.huge.icon
         {
@@ -175,8 +162,7 @@
                   (swap! state update-in [:top-items] conj n)
                   (println @state)
                   (main))
-         :join (d3
-                (classed n true))
+         :join #(.. % (classed n true))
          }
         ]
       ])])
