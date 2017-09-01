@@ -144,8 +144,6 @@
                      :enter #(.. % (style "opacity" 0))}]])])
 (defn bottom []
   [:div.ui.bottom.attached.segment
-   {:join #(.. % (style "height" "100%"))}
-
    (for [n (:list-items @state)]
      [:div.ui.vertical.segment
       {:id n
