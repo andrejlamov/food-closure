@@ -73,7 +73,11 @@
                         ))))))
 
 (defn flying [parent ns enter-selection exit-selection]
-  (let [{:keys [padding-left padding-right width]} (style parent)]
+  (let [{:keys [padding-left padding-right width]} (style parent)
+        i1 (.. parent (select "i"))
+        i0 (.. exit-selection (select "i"))
+        ]
+    (.. i0 (on "click" nil))
     (.. parent
         (style "padding-left" 0)
         (style "padding-right" 0)
@@ -85,8 +89,6 @@
         (style "padding-right" (str padding-right "px"))
         (on "end" (fn []
                     (let [
-                          i1 (.. parent (select "i"))
-                          i0 (.. exit-selection (select "i"))
                           [t1 l1] (pos (.. i1 node))
                           [t0 l0] (pos (.. i0 node))
                           t (- (- t1 t0))
