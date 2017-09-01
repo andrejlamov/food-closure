@@ -9,7 +9,7 @@
   (swap! ctx assoc :animations {}))
 
 
-(defn flatten-nodes [selection]
+(defn- flatten-nodes [selection]
   #?(:cljs
      (let [acc (atom [(.. selection node)])]
        (.. selection
@@ -18,7 +18,7 @@
                     (swap! acc conj this))))
        @acc)))
 
-(defn not-active? [selection]
+(defn- not-active? [selection]
   #?(
      :clj true
      :cljs
@@ -33,11 +33,6 @@
 
 (defn- get-node [ctx path]
   (get-in @ctx (concat [:selections] path)))
-
-(defn lookup [ctx ns f]
-  (if (fn? f)
-    f
-    (get-in ctx [:animations ns f] (fn [& args]))))
 
 (defn- add
   ([ctx ns t cb]
