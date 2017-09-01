@@ -3,9 +3,7 @@
             [cljsjs.d3]
             [cljsjs.jquery]
             [food.render :as r :refer [render transform]]
-            [food.animation :as animation])
-  (:require-macros
-   [food.macros :refer [d3]]))
+            [food.animation :as animation]))
 
 (enable-console-print!)
 
@@ -128,7 +126,7 @@
                       )))))
 
 (defn top-bar []
-  [:div.ui.top.attached.menu {:join (d3 (style "height" "6em"))}
+  [:div.ui.top.attached.menu {:join #(.. % (style "height" "6em"))}
    (for [n (:top-items @state)]
      [:div.ui.icon.item
       {:id n
@@ -141,12 +139,12 @@
                                (animation/on-both ctx ns (partial flying selection ns))))
        }
       [:i.huge.icon {:id n
-                     :join (d3 (classed n true)
+                     :join #(..  % (classed n true)
                                (style "color" "red"))
-                     :enter (d3 (style "opacity" 0))}]])])
+                     :enter #(.. % (style "opacity" 0))}]])])
 (defn bottom []
   [:div.ui.bottom.attached.segment
-   {:join (d3 (style "height" "100%"))}
+   {:join #(.. % (style "height" "100%"))}
 
    (for [n (:list-items @state)]
      [:div.ui.vertical.segment
