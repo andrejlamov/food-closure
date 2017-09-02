@@ -9,23 +9,25 @@
 
 (def ctx (animation/context))
 
-(defonce state (atom {:top-items #{
-                               "play"
-                               "stop"
-                               "apple"
-                               "amazon"
-                               }
-                  :list-items #{"chrome"
-                                "firefox"
-                                "google"
-                                "edge"
-                                "opera"}}))
+(declare root main bottom-items hello)
+
+(def components (atom (cycle ["hello" "bottom-items"])))
+(def state (atom {:top-items #{"play"
+                                   "stop"
+                                   "apple"
+                                   "amazon"
+                                   }
+                      :list-items #{"chrome"
+                                    "firefox"
+                                    "google"
+                                    "edge"
+                                    "opera"}
+                      }))
 
 (defn pos [e]
   (let [o (.. (js/$ e) offset)]
     [(.-top o) (.-left o)]))
 
-(declare root main)
 
 (defn style [sel]
   (let [
@@ -110,6 +112,7 @@
                       (.. i0 (style "visibility" "hidden"))))))))
 
 (defn bottom-item-exit [parent]
+  (println "item exit")
   (.. parent
       (select "i")
       (transition)
@@ -136,14 +139,24 @@
        :exit (fn [selection] (animation/on-exit ctx (keyword "dock" n) selection top-bar-item-exit))
        :enter (fn [selection] (let [ns (keyword "flying" n)]
                                (animation/on-enter ctx ns selection top-bar-item-enter)
-                               (animation/on-both ctx ns (partial flying selection ns))))
-       }
+                               (animation/on-both ctx ns (partial flying selection ns))))}
       [:i.huge.icon {:id n
                      :join #(..  % (classed n true)
                                (style "color" "red"))
                      :enter #(.. % (style "opacity" 0))}]])])
-(defn bottom []
+(defn fader [enter-selection exit-selection]
+  (println "both")
+  (.. exit-selection remove)
+  )
+
+(defn bottom-items []
   [:div.ui.bottom.attached.segment
+   {:id "bottom-items"
+    :enter (fn [selection]
+             (animation/on-enter ctx "fader" selection (fn [sel])))
+    :exit (fn [selection]
+            (animation/on-exit ctx "fader" selection (fn [sel] (.. sel remove))))
+    }
    (for [n (:list-items @state)]
      [:div.ui.vertical.segment
       {:id n
@@ -151,27 +164,45 @@
                    (transition)
                    (style "opacity" 1)
                    (attr "class" "ui vertical segment"))
-       :exit (fn [selection] (animation/on-exit ctx (keyword "flying" n) selection bottom-item-exit))
-       }
+       :exit (fn [selection] (animation/on-exit ctx (keyword "flying" n) selection bottom-item-exit))}
        [:div.ui.icon.item>i.huge.icon
-        {
-         :click (fn [d]
+        {:click (fn [d]
                   (swap! state update-in [:list-items] #(set (remove #{n} %)))
                   (swap! state update-in [:top-items] conj n)
-                  (println @state)
                   (main))
-         :join #(.. % (classed n true))
-         }
+         :join #(.. % (classed n true))}
         ]
       ])])
+
+(defn hello []
+  [:div.ui.bottom.attached.segment
+   {:id "hello"
+    :enter (fn [selection]
+             (animation/on-enter ctx "fader" selection (fn [sel])))
+    :exit (fn [selection]
+            (animation/on-exit ctx "fader" selection (fn [sel] (.. sel remove))))
+    }
+   [:h {:join #(.. % (text (repeat 100 "hello")))}]])
 
 (defn root []
   [:div.ui.container
    (top-bar)
-   (bottom)])
+   (case (first @components)
+     "hello" (hello)
+     "bottom-items" (bottom-items)
+     )
+   [:button {:click (fn []
+                      (reset! components (next @components))
+                      (main))
+             :join  #(.. % (text "Swap"))
+             }]
+     ])
 
 (defn main []
+  (println "***")
   (animation/clear ctx)
+  (animation/on-both ctx "fader" fader)
+
   (render
    (.. js/d3 (select "#app"))
    (root))
