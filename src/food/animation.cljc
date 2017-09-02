@@ -29,10 +29,10 @@
 
 
 (defn- store-node [ctx path sel]
-  (swap! ctx assoc-in (concat [:selections] path) sel))
+  (swap! ctx assoc-in (concat [:selections] path) {:active false :selection sel}))
 
-(defn- get-node [ctx path]
-  (get-in @ctx (concat [:selections] path)))
+(defn get-node [ctx path]
+  (get-in @ctx (concat [:selections] path [:selection])))
 
 (defn- add
   ([ctx ns t cb]
@@ -62,6 +62,7 @@
          exit     (get-in @ctx [:animations ns :exit])
          enter-selection (get-node ctx [ns :enter])
          exit-selection  (get-node ctx [ns :exit])
+         
          ]
      (if (and override enter exit
               (not-active? enter-selection)

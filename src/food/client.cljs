@@ -11,7 +11,7 @@
 
 (declare root main bottom-items hello)
 
-(def components (atom (cycle ["hello" "bottom-items"])))
+(def components (atom (cycle ["bottom-items" "hello"])))
 (def state (atom {:top-items #{"play"
                                    "stop"
                                    "apple"
@@ -28,6 +28,8 @@
   (let [o (.. (js/$ e) offset)]
     [(.-top o) (.-left o)]))
 
+(defn translate [x y]
+  (str "translate(" x "px," y "px)"))
 
 (defn style [sel]
   (let [
@@ -97,19 +99,24 @@
                           (style "transform" (str "translate(" l "px," t "px)"))
                           (style "z-index" 1)
                           (style "opacity" 1)
-                          (transition)
+                          (transition "test")
                           (duration 500)
-                          (style "transform" (str "translate(0,0"))
-                          (on "end" (fn [] (..
+                          (style "transform" "translate(0px,0px)")
+                          (on "end" (fn []
+                                      (let [fade-enter (animation/get-node ctx ["fader" :enter])]
+                                        (when (animation/not-active? fade-enter)
+                                          (..
                                            exit-selection
-                                           (transition)
+                                           (transition "test")
                                            (duration 500)
                                            (style "height" "0")
                                            (style "padding-top" "0")
                                            (style "padding-bottom" "0")
                                            remove)
-                                      )))
-                      (.. i0 (style "visibility" "hidden"))))))))
+                                          )))))
+                      (.. i0 (style "visibility" "hidden"))
+
+                      ))))))
 
 (defn bottom-item-exit [parent]
   (println "item exit")
@@ -120,13 +127,44 @@
       (on "end" (fn []
                   (.. parent
                       (style "transform" "scaleX(1)")
-                      (transition)
                       (style "height" "0")
                       (style "transform" "scaleX(0)")
                       (style "padding-top" "0")
                       (style "padding-bottom" "0")
-                      remove
+                      (on "end"
+                          (println "end")
+                          (.. parent remove))
                       )))))
+
+(defn fader [parent enter-selection exit-selection]
+  (let [
+        get-height  #(.. % (style "height"))
+        ]
+
+    (.. exit-selection
+        (selectAll "*")
+        (on "click" nil))
+
+    (.. parent
+        (style "height" (get-height enter-selection)))
+    (.. enter-selection
+        (style "transform" (str "translateY(-" (get-height exit-selection) ")"))
+        (style "opacity" 0)
+        (transition)
+        (duration 1000)
+        (style "opacity"1))
+    (.. exit-selection
+        (style "opacity" 1)
+        (transition)
+        (duration 1000)
+        (style "opacity" 0)
+        (on "end" (fn []
+                    (.. enter-selection
+                        (style "transform" "translateY(-1px)"))
+                    (.. exit-selection
+                        remove)
+                    ))))
+  )
 
 (defn top-bar []
   [:div.ui.top.attached.menu {:join #(.. % (style "height" "6em"))}
@@ -144,14 +182,11 @@
                      :join #(..  % (classed n true)
                                (style "color" "red"))
                      :enter #(.. % (style "opacity" 0))}]])])
-(defn fader [enter-selection exit-selection]
-  (println "both")
-  (.. exit-selection remove)
-  )
 
 (defn bottom-items []
   [:div.ui.bottom.attached.segment
    {:id "bottom-items"
+    :join #(.. % (style "margin-bottom" 0))
     :enter (fn [selection]
              (animation/on-enter ctx "fader" selection (fn [sel])))
     :exit (fn [selection]
@@ -177,6 +212,7 @@
 (defn hello []
   [:div.ui.bottom.attached.segment
    {:id "hello"
+    :join #(.. % (style "margin-bottom" 0))
     :enter (fn [selection]
              (animation/on-enter ctx "fader" selection (fn [sel])))
     :exit (fn [selection]
@@ -187,10 +223,16 @@
 (defn root []
   [:div.ui.container
    (top-bar)
-   (case (first @components)
-     "hello" (hello)
-     "bottom-items" (bottom-items)
-     )
+   [:div.ui.container
+    {:join (fn [selection]
+             (animation/on-both ctx "fader" (partial fader selection))
+             (.. selection (style "height" "auto"))
+             )
+     }
+    (case (first @components)
+      "hello" (hello)
+      "bottom-items" (bottom-items)
+      )]
    [:button {:click (fn []
                       (reset! components (next @components))
                       (main))
@@ -201,8 +243,6 @@
 (defn main []
   (println "***")
   (animation/clear ctx)
-  (animation/on-both ctx "fader" fader)
-
   (render
    (.. js/d3 (select "#app"))
    (root))
