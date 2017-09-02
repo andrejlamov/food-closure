@@ -99,7 +99,7 @@
                           (style "transform" (str "translate(" l "px," t "px)"))
                           (style "z-index" 1)
                           (style "opacity" 1)
-                          (transition "test")
+                          (transition)
                           (duration 500)
                           (style "transform" "translate(0px,0px)")
                           (on "end" (fn []
@@ -107,7 +107,7 @@
                                         (when (animation/not-active? fade-enter)
                                           (..
                                            exit-selection
-                                           (transition "test")
+                                           (transition)
                                            (duration 500)
                                            (style "height" "0")
                                            (style "padding-top" "0")
@@ -127,13 +127,12 @@
       (on "end" (fn []
                   (.. parent
                       (style "transform" "scaleX(1)")
+                      (transition)
                       (style "height" "0")
                       (style "transform" "scaleX(0)")
                       (style "padding-top" "0")
                       (style "padding-bottom" "0")
-                      (on "end"
-                          (println "end")
-                          (.. parent remove))
+                      (remove)
                       )))))
 
 (defn fader [parent enter-selection exit-selection]
