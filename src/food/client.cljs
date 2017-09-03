@@ -140,7 +140,7 @@
 
 (defn fader [parent enter-selection exit-selection]
   ;; Swap enter and exit in DOM so that other transitions in exit
-  ;; does not interfere with the swapping transforms
+  ;; do not interfere with the swapping transforms
   (.. parent node (appendChild (.. exit-selection node)))
 
   (let [get-height  #(.. % (style "height"))]
