@@ -44,12 +44,12 @@
   (.. parent
       (select "i")
       (transition)
-      (duration 500)
+      (duration 2000)
       (style "opacity" 0)
       (on "end"
           #(.. parent
                (transition)
-               (duration 500)
+               (duration 2000)
                (style "width" "0px")
                (style "padding-left" "0px")
                (style "padding-right" "0px")
@@ -62,7 +62,7 @@
         (style "padding-left" 0)
         (style "padding-right" 0)
         (transition)
-        (duration 500)
+        (duration 2000)
         (style "width" (str width "px"))
         (style "padding-left" (str padding-left "px"))
         (style "padding-right" (str padding-right "px"))
@@ -70,11 +70,12 @@
                     (.. parent
                         (select "i")
                         (transition)
-                        (duration 500)
+                        (duration 2000)
                         (style "opacity" 1)
                         ))))))
 
 (defn flying [parent ns enter-selection exit-selection]
+  (animation/set-animation-active ctx [ns :override])
   (let [{:keys [padding-left padding-right width]} (style parent)
         i1 (.. parent (select "i"))
         i0 (.. exit-selection (select "i"))
@@ -85,7 +86,7 @@
         (style "padding-right" 0)
         (style "width" 0)
         transition
-        (duration 500)
+        (duration 2000)
         (style "width" (str width "px"))
         (style "padding-left" (str padding-left "px"))
         (style "padding-right" (str padding-right "px"))
@@ -100,40 +101,40 @@
                           (style "z-index" 1)
                           (style "opacity" 1)
                           (transition)
-                          (duration 500)
+                          (duration 2000)
                           (style "transform" "translate(0px,0px)")
                           (on "end" (fn []
-                                      (let [fade-enter (animation/get-node ctx ["fader" :enter])]
-                                        (when (animation/not-active? fade-enter)
-                                          (..
-                                           exit-selection
-                                           (transition)
-                                           (duration 500)
-                                           (style "height" "0")
-                                           (style "padding-top" "0")
-                                           (style "padding-bottom" "0")
-                                           remove)
-                                          )))))
+                                      (..
+                                       exit-selection
+                                       (transition)
+                                       (duration 2000)
+                                       (style "height" "0")
+                                       (style "padding-top" "0")
+                                       (style "padding-bottom" "0")
+                                       remove)
+                                      (animation/set-animation-active ctx [ns :override])
+                                      )))
                       (.. i0 (style "visibility" "hidden"))
 
                       ))))))
 
-(defn bottom-item-exit [parent]
+(defn bottom-item-exit [ns parent]
   (println "item exit")
-  (.. parent
-      (select "i")
-      (transition)
-      (style "opacity" 0)
-      (on "end" (fn []
-                  (.. parent
-                      (style "transform" "scaleX(1)")
-                      (transition)
-                      (style "height" "0")
-                      (style "transform" "scaleX(0)")
-                      (style "padding-top" "0")
-                      (style "padding-bottom" "0")
-                      (remove)
-                      )))))
+  (when (not (animation/animation-active? ctx [ns :override]))
+    (.. parent
+        (select "i")
+        (transition)
+        (style "opacity" 0)
+        (on "end" (fn []
+                    (.. parent
+                        (style "transform" "scaleX(1)")
+                        (transition)
+                        (style "height" "0")
+                        (style "transform" "scaleX(0)")
+                        (style "padding-top" "0")
+                        (style "padding-bottom" "0")
+                        (remove)
+                        ))))))
 
 (defn fader [parent enter-selection exit-selection]
   (let [
@@ -198,7 +199,8 @@
                    (transition)
                    (style "opacity" 1)
                    (attr "class" "ui vertical segment"))
-       :exit (fn [selection] (animation/on-exit ctx (keyword "flying" n) selection bottom-item-exit))}
+       :exit (fn [selection] (let [ns (keyword "flying" n)]
+                              (animation/on-exit ctx (keyword "flying" n) selection (partial bottom-item-exit ns))))}
        [:div.ui.icon.item>i.huge.icon
         {:click (fn [d]
                   (swap! state update-in [:list-items] #(set (remove #{n} %)))

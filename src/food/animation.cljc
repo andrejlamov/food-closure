@@ -28,17 +28,26 @@
          (every? nil? (map (fn [t] (.. js/d3 (active t))) (flatten-nodes selection)))))))
 
 
-(defn- store-node [ctx path sel]
-  (swap! ctx assoc-in (concat [:selections] path) {:active false :selection sel}))
+(defn- store-selection [ctx path sel]
+  (swap! ctx assoc-in (concat [:selections] path [:selection]) sel))
 
-(defn get-node [ctx path]
+(defn get-selection [ctx path]
   (get-in @ctx (concat [:selections] path [:selection])))
+
+(defn set-animation-active [ctx path]
+  (swap! ctx assoc-in (concat [:selections] path [:active]) true))
+
+(defn set-animation-inactive [ctx path]
+  (swap! ctx assoc-in (concat [:selections] path [:active]) false))
+
+(defn animation-active? [ctx path]
+  (get-in @ctx (concat [:selections] path [:active])))
 
 (defn- add
   ([ctx ns t cb]
    (swap! ctx assoc-in [:animations ns t] cb))
   ([ctx ns t sel cb]
-    (store-node ctx [ns t] sel)
+    (store-selection ctx [ns t] sel)
     (swap! ctx assoc-in [:animations ns t] cb)))
 
 (defn on-enter [ctx ns sel cb]
@@ -60,14 +69,13 @@
    (let [override (get-in @ctx [:animations ns :override])
          enter    (get-in @ctx [:animations ns :enter])
          exit     (get-in @ctx [:animations ns :exit])
-         enter-selection (get-node ctx [ns :enter])
-         exit-selection  (get-node ctx [ns :exit])
-         
+         enter-selection (get-selection ctx [ns :enter])
+         exit-selection  (get-selection ctx [ns :exit])
          ]
      (if (and override enter exit
               (not-active? enter-selection)
               (not-active? exit-selection))
-       (override (get-node ctx [ns :enter]) (get-node ctx [ns :exit]))
+       (override (get-selection ctx [ns :enter]) (get-selection ctx [ns :exit]))
        (do
          (when (and enter (not-active? enter-selection))
            (enter enter-selection))
