@@ -80,7 +80,9 @@
         i1 (.. parent (select "i"))
         i0 (.. exit-selection (select "i"))
         ]
-    (.. i0 (on "click" nil))
+    (.. i0
+        (style "color" "green")
+        (on "click" nil))
     (.. parent
         (style "padding-left" 0)
         (style "padding-right" 0)
@@ -140,7 +142,7 @@
 
 (defn fader [parent enter-selection exit-selection]
   (animation/set-animation-active ctx ["fader" :override])
-
+  (js/console.log (.. exit-selection node))
   (let [
         get-height  #(.. % (style "height"))
         ]
@@ -158,7 +160,7 @@
         (style "opacity"1))
     (.. exit-selection
         (style "opacity" 1)
-        (transition)
+        (transition "temp")
         (duration 1000)
         (style "opacity" 0)
         (on "end" (fn []
@@ -167,7 +169,6 @@
                     (.. exit-selection
                         remove)
                     (animation/set-animation-inactive ctx ["fader" :override])
-
                     ))))
   )
 
@@ -193,8 +194,10 @@
    {:id "bottom-items"
     :join #(.. % (style "margin-bottom" 0))
     :enter (fn [selection]
+             (println "bottom-items enter")
              (animation/on-enter ctx "fader" selection (fn [sel])))
     :exit (fn [selection]
+            (println "bottom-items exit")
             (animation/on-exit ctx "fader" selection (fn [sel] (.. sel remove))))
     }
    (for [n (:list-items @state)]

@@ -73,8 +73,7 @@
          exit-selection  (get-selection ctx [ns :exit])
          ]
      (if (and override enter exit
-              (not-active? enter-selection)
-              (not-active? exit-selection))
+              )
        (override (get-selection ctx [ns :enter]) (get-selection ctx [ns :exit]))
        (do
          (when (and enter (not-active? enter-selection))
