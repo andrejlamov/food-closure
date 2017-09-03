@@ -104,15 +104,17 @@
                           (duration 2000)
                           (style "transform" "translate(0px,0px)")
                           (on "end" (fn []
-                                      (..
-                                       exit-selection
-                                       (transition)
-                                       (duration 2000)
-                                       (style "height" "0")
-                                       (style "padding-top" "0")
-                                       (style "padding-bottom" "0")
-                                       remove)
-                                      (animation/set-animation-active ctx [ns :override])
+                                      (if (not (animation/animation-active? ctx ["fader" :override]))
+                                        (..
+                                         exit-selection
+                                         (transition)
+                                         (duration 2000)
+                                         (style "height" "0")
+                                         (style "padding-top" "0")
+                                         (style "padding-bottom" "0")
+                                         (on "end" #(animation/set-animation-active ctx [ns :override]))
+                                         remove)
+                                        (animation/set-animation-active ctx [ns :override]))
                                       )))
                       (.. i0 (style "visibility" "hidden"))
 
@@ -137,6 +139,8 @@
                         ))))))
 
 (defn fader [parent enter-selection exit-selection]
+  (animation/set-animation-active ctx ["fader" :override])
+
   (let [
         get-height  #(.. % (style "height"))
         ]
@@ -144,7 +148,6 @@
     (.. exit-selection
         (selectAll "*")
         (on "click" nil))
-
     (.. parent
         (style "height" (get-height enter-selection)))
     (.. enter-selection
@@ -163,6 +166,8 @@
                         (style "transform" "translateY(-1px)"))
                     (.. exit-selection
                         remove)
+                    (animation/set-animation-inactive ctx ["fader" :override])
+
                     ))))
   )
 
