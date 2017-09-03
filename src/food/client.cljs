@@ -106,17 +106,15 @@
                           (duration 2000)
                           (style "transform" "translate(0px,0px)")
                           (on "end" (fn []
-                                      (if (not (animation/animation-active? ctx ["fader" :override]))
-                                        (..
-                                         exit-selection
-                                         (transition)
-                                         (duration 2000)
-                                         (style "height" "0")
-                                         (style "padding-top" "0")
-                                         (style "padding-bottom" "0")
-                                         (on "end" #(animation/set-animation-active ctx [ns :override]))
-                                         remove)
-                                        (animation/set-animation-active ctx [ns :override]))
+                                      (..
+                                       exit-selection
+                                       (transition)
+                                       (duration 2000)
+                                       (style "height" "0")
+                                       (style "padding-top" "0")
+                                       (style "padding-bottom" "0")
+                                       (on "end" #(animation/set-animation-active ctx [ns :override]))
+                                       remove)
                                       )))
                       (.. i0 (style "visibility" "hidden"))
 
@@ -141,34 +139,33 @@
                         ))))))
 
 (defn fader [parent enter-selection exit-selection]
-  (animation/set-animation-active ctx ["fader" :override])
-  (js/console.log (.. exit-selection node))
-  (let [
-        get-height  #(.. % (style "height"))
-        ]
+  ;; Swap enter and exit in DOM so that other transitions in exit
+  ;; does not interfere with the swapping transforms
+  (.. parent node (appendChild (.. exit-selection node)))
 
+  (let [get-height  #(.. % (style "height"))]
     (.. exit-selection
         (selectAll "*")
         (on "click" nil))
     (.. parent
         (style "height" (get-height enter-selection)))
     (.. enter-selection
-        (style "transform" (str "translateY(-" (get-height exit-selection) ")"))
         (style "opacity" 0)
         (transition)
         (duration 1000)
-        (style "opacity"1))
+        (style "opacity"1)
+        )
     (.. exit-selection
+        (style "transform" (str "translateY(-" (get-height enter-selection) ")"))
         (style "opacity" 1)
         (transition "temp")
         (duration 1000)
         (style "opacity" 0)
         (on "end" (fn []
-                    (.. enter-selection
+                    (.. exit-selection
                         (style "transform" "translateY(-1px)"))
                     (.. exit-selection
                         remove)
-                    (animation/set-animation-inactive ctx ["fader" :override])
                     ))))
   )
 
@@ -232,7 +229,7 @@
 (defn root []
   [:div.ui.container
    (top-bar)
-   [:div.ui.container
+   [:div.ui.container.test
     {:join (fn [selection]
              (animation/on-both ctx "fader" (partial fader selection))
              (.. selection (style "height" "auto"))
