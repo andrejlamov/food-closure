@@ -16,11 +16,12 @@
                                    "stop"
                                    "apple"
                                    "amazon"
-                                   }
+                               "edge"
+                               }
                       :list-items #{"chrome"
                                     "firefox"
                                     "google"
-                                    "edge"
+                                    ;; "edge"
                                     "opera"}
                       }))
 
@@ -56,6 +57,7 @@
                (remove)))))
 
 (defn top-bar-item-enter [parent]
+  (println "top bar enter")
   (let [{:keys [padding-left padding-right width]} (style parent)]
     (.. parent
         (style "width" 0)
@@ -75,10 +77,16 @@
                         ))))))
 
 (defn flying [parent ns enter-selection exit-selection]
+  (.. exit-selection
+      (selectAll "*")
+      interrupt)
+
+  (println "flying")
   (animation/set-animation-active ctx [ns :override])
   (let [{:keys [padding-left padding-right width]} (style parent)
         i1 (.. parent (select "i"))
         i0 (.. exit-selection (select "i"))
+        [t0 l0] (pos (.. i0 node))
         ]
     (.. i0
         (style "color" "green")
@@ -95,7 +103,6 @@
         (on "end" (fn []
                     (let [
                           [t1 l1] (pos (.. i1 node))
-                          [t0 l0] (pos (.. i0 node))
                           t (- (- t1 t0))
                           l (- (- l1 l0 4))]
                       (.. i1
@@ -209,8 +216,10 @@
        [:div.ui.icon.item>i.huge.icon
         {:click (fn [d]
                   (swap! state update-in [:list-items] #(set (remove #{n} %)))
+                  (main)
                   (swap! state update-in [:top-items] conj n)
-                  (main))
+                  (main)
+                  )
          :join #(.. % (classed n true))}
         ]
       ])])
