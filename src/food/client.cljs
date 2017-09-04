@@ -11,22 +11,23 @@
 
 (declare root main bottom-items hello)
 
-(def components (atom (cycle ["bottom-items" "hello"])))
-(def state (atom {:top-items #{"play"
+(def state (atom {
+                  :components (cycle ["bottom-items" "hello"])
+
+                  :top-items #{"play"
                                "stop"
                                "apple"
                                "amazon"
                                "edge"
                                }
-                      :list-items #{"chrome"
-                                    "firefox"
-                                    "google"
-                                    "opera"}
+                  :list-items #{"chrome"
+                                "firefox"
+                                "google"
+                                "opera"}
                       }))
 
 
 (add-watch state nil (fn [& args] (main)))
-(add-watch components nil (fn [& args] (main)))
 
 (defn pos [e]
   (let [o (.. (js/$ e) offset)]
@@ -242,11 +243,11 @@
              (.. selection (style "height" "auto"))
              )
      }
-    (case (first @components)
+    (case (-> @state :components first)
       "hello" (hello)
       "bottom-items" (bottom-items)
       )]
-   [:button {:click (fn [] (reset! components (next @components)))
+   [:button {:click (fn [] (swap! state update :components next))
              :join  #(.. % (text "Swap"))
              }]
      ])
