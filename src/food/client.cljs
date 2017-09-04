@@ -13,17 +13,20 @@
 
 (def components (atom (cycle ["bottom-items" "hello"])))
 (def state (atom {:top-items #{"play"
-                                   "stop"
-                                   "apple"
-                                   "amazon"
+                               "stop"
+                               "apple"
+                               "amazon"
                                "edge"
                                }
                       :list-items #{"chrome"
                                     "firefox"
                                     "google"
-                                    ;; "edge"
                                     "opera"}
                       }))
+
+
+(add-watch state nil (fn [& args] (main)))
+(add-watch components nil (fn [& args] (main)))
 
 (defn pos [e]
   (let [o (.. (js/$ e) offset)]
@@ -181,9 +184,7 @@
    (for [n (:top-items @state)]
      [:div.ui.icon.item
       {:id n
-       :click (fn [d]
-                (swap! state update-in [:top-items] #(set (remove #{n} %)))
-                (main))
+       :click (fn [] (swap! state update-in [:top-items] #(set (remove #{n} %))))
        :exit (fn [selection] (animation/on-exit ctx (keyword "dock" n) selection top-bar-item-exit))
        :enter (fn [selection] (let [ns (keyword "flying" n)]
                                (animation/on-enter ctx ns selection top-bar-item-enter)
@@ -214,12 +215,9 @@
        :exit (fn [selection] (let [ns (keyword "flying" n)]
                               (animation/on-exit ctx (keyword "flying" n) selection (partial bottom-item-exit ns))))}
        [:div.ui.icon.item>i.huge.icon
-        {:click (fn [d]
+        {:click (fn []
                   (swap! state update-in [:list-items] #(set (remove #{n} %)))
-                  (main)
-                  (swap! state update-in [:top-items] conj n)
-                  (main)
-                  )
+                  (swap! state update-in [:top-items] conj n))
          :join #(.. % (classed n true))}
         ]
       ])])
@@ -248,9 +246,7 @@
       "hello" (hello)
       "bottom-items" (bottom-items)
       )]
-   [:button {:click (fn []
-                      (reset! components (next @components))
-                      (main))
+   [:button {:click (fn [] (reset! components (next @components)))
              :join  #(.. % (text "Swap"))
              }]
      ])
