@@ -19,9 +19,9 @@
                                "apple"
                                "amazon"
                                "edge"
+                               "firefox"
                                }
                   :list-items #{"chrome"
-                                "firefox"
                                 "google"
                                 "opera"}
                       }))
@@ -90,7 +90,6 @@
   (let [{:keys [padding-left padding-right width]} (style parent)
         i1 (.. parent (select "i"))
         i0 (.. exit-selection (select "i"))
-        [t0 l0] (pos (.. i0 node))
         ]
     (.. i0
         (style "color" "green")
@@ -106,6 +105,7 @@
         (style "padding-right" (str padding-right "px"))
         (on "end" (fn []
                     (let [
+                          [t0 l0] (pos (.. i0 node))
                           [t1 l1] (pos (.. i1 node))
                           t (- (- t1 t0))
                           l (- (- l1 l0 4))]
@@ -124,7 +124,7 @@
                                        (style "height" "0")
                                        (style "padding-top" "0")
                                        (style "padding-bottom" "0")
-                                       (on "end" #(animation/set-animation-active ctx [ns :override]))
+                                       (on "end" #(animation/set-animation-inactive ctx [ns :override]))
                                        remove)
                                       )))
                       (.. i0 (style "visibility" "hidden"))
